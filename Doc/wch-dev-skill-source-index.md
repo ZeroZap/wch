@@ -142,6 +142,44 @@ Targets:
 - `Doc/HAL/`
 - `Doc/Core/`
 
+### Storage Interfaces
+
+Sources:
+
+- `chips/*/recipes/sdio_sdcard.md`
+- `chips/ch56x-ethernet/recipes/sd_card.md`
+- `chips/*/recipes/emmc_storage.md`
+- `chips/*/recipes/hspi_comm.md`
+- `chips/ch32h-highperf/recipes/qspi_flash.md`
+
+Targets:
+
+- `Doc/Storage/`
+- `Doc/HAL/`
+- `Doc/Family/`
+
+### System, Analog, Power, And Utility Peripherals
+
+Sources:
+
+- `chips/*/recipes/power_management.md`
+- `chips/*/recipes/lowpower.md`
+- `chips/*/recipes/watchdog.md`
+- `chips/*/recipes/rtc_config.md`
+- `chips/*/recipes/rtc_clock.md`
+- `chips/*/recipes/cmp.md`
+- `chips/*/recipes/compare.md`
+- `chips/*/recipes/opa_config.md`
+- `chips/*/recipes/dac_output.md`
+- `chips/*/recipes/rng_random.md`
+- `chips/*/recipes/crc_calculation.md`
+
+Targets:
+
+- `Doc/System/`
+- `Doc/HAL/`
+- `Doc/Core/`
+
 ### Display, HMI, And Specialty Peripherals
 
 Sources:
@@ -202,6 +240,8 @@ Targets:
 5. `Doc/ETH/wch-ethernet-notes.md`: Ethernet MAC/PHY/DMA/WCHNET notes. Done for first Markdown extraction pass; EVT and board-level verification remains.
 6. `Doc/USB/`, `Doc/USBPD/`, `Doc/IAP/`, `Doc/RTOS/`: specialized topic extraction docs. Done for first Markdown extraction pass; EVT and integration verification remains.
 7. `Doc/HMI/wch-hmi-specialty-notes.md`: display, HMI, and specialty peripheral notes. Done for first Markdown extraction pass; board-level and peripheral-specific verification remains.
+8. `Doc/Storage/wch-storage-notes.md`: SD/SDIO/eMMC/HSPI/QSPI storage interface notes. Done for first Markdown extraction pass; EVT, board, and device verification remains.
+9. `Doc/System/wch-system-analog-power-notes.md`: low-power, RTC, watchdog, analog, CRC/RNG, and utility peripheral notes. Done for first Markdown extraction pass; EVT, board, analog, and measurement verification remains.
 
 ## Notes
 
