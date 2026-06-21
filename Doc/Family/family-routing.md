@@ -2,7 +2,7 @@
 
 This document is the repository-specific entry point for routing WCH chips to their source references, EVT directories, and future HAL family notes.
 
-Sources:
+## Source Files
 
 - `Doc/Ref/wch-dev-skill/SKILL.md`
 - `Doc/Ref/wch-dev-skill/AGENTS.md`
@@ -51,3 +51,9 @@ Sources:
 - Verify exact EVT coverage for CH32V003, CH32V006, CH32L103, CH32F103, CH32F20x, CH561, CH563, and CH5xx in this repository.
 - Create per-family notes only when a family is actively normalized.
 - Cross-link this document from future topic documents when they extract family-specific behavior.
+
+## Verification Status
+
+- Extracted from `Doc/Ref/wch-dev-skill` top-level routing documents plus repository directory layout.
+- Not fully verified against every EVT tree, RM, DS, package variant, or chip-specific startup/linker file in this pass.
+- Treat this document as a routing index. Exact chip capabilities, package availability, register details, and example coverage must be checked against official EVT, RM, DS, and board material before implementation.

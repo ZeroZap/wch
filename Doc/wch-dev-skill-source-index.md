@@ -161,6 +161,7 @@ Sources:
 
 Targets:
 
+- `Doc/HMI/`
 - `Doc/HAL/`
 - `Doc/Family/`
 
@@ -178,6 +179,20 @@ Targets:
 - `Doc/Core/`
 - `Doc/Family/`
 
+### RTOS Integration
+
+Sources:
+
+- `chips/*/resources/example_list.md`
+- `chips/*/resources/pitfalls.md`
+- BLE/TMOS-related recipes and references under `chips/ch57x/` and `chips/ch58x-ch59x/`
+
+Targets:
+
+- `Doc/RTOS/`
+- `Doc/BLE/`
+- `Doc/Core/`
+
 ## First-Pass Extraction Order
 
 1. `Doc/Family/family-routing.md`: global family routing and source directory mapping. Done.
@@ -185,7 +200,8 @@ Targets:
 3. `Doc/Core/wch-core-notes.md`: memory layout, interrupt attributes, startup/linker rules. Done for first Markdown extraction pass; EVT linker/startup verification remains.
 4. `Doc/HAL/wch-hal-normalization.md`: common peripheral normalization notes. Done for first Markdown extraction pass; EVT API verification remains.
 5. `Doc/ETH/wch-ethernet-notes.md`: Ethernet MAC/PHY/DMA/WCHNET notes. Done for first Markdown extraction pass; EVT and board-level verification remains.
-6. `Doc/USB/`, `Doc/USBPD/`, `Doc/IAP/`: remaining specialized topics.
+6. `Doc/USB/`, `Doc/USBPD/`, `Doc/IAP/`, `Doc/RTOS/`: specialized topic extraction docs. Done for first Markdown extraction pass; EVT and integration verification remains.
+7. `Doc/HMI/wch-hmi-specialty-notes.md`: display, HMI, and specialty peripheral notes. Done for first Markdown extraction pass; board-level and peripheral-specific verification remains.
 
 ## Notes
 

@@ -35,6 +35,7 @@ Use existing directories first. Create new directories only when the topic does 
 | Chip-family routing, memory map, examples, pitfalls | `Doc/Family/` | Create per-family notes when actively normalizing a family. |
 | IAP/OTA/bootloader/linker offset | `Doc/IAP/` | Create when IAP extraction starts. |
 | FreeRTOS/RT-Thread/HarmonyOS/UCOS references | `Doc/RTOS/` | Create when RTOS extraction starts. |
+| Display, HMI, and specialty peripherals | `Doc/HMI/` | Create when display/HMI extraction starts. |
 
 ## Extraction Rules
 
@@ -116,11 +117,12 @@ Use this workflow for each topic or chip family.
 - [x] Extract Ethernet notes into `Doc/ETH/`.
 - [x] Create `Doc/HAL/` and extract common peripheral normalization notes for GPIO, RCC, UART, SPI, I2C, ADC, Timer, Flash, and DMA.
 - [x] Create `Doc/USB/` and extract USB device, host, USB HS, and USB3 notes.
-- [ ] Create `Doc/USBPD/` and extract USB-PD, Type-C, and PIOC notes.
-- [ ] Create `Doc/IAP/` and extract IAP, OTA, bootloader, and linker-offset notes.
-- [ ] Create `Doc/RTOS/` and extract RTOS-related references where useful.
-- [ ] For each extracted target document, include source paths and verification status.
-- [ ] Keep `README.md` aligned with the current extraction status.
+- [x] Create `Doc/USBPD/` and extract USB-PD, Type-C, and PIOC notes.
+- [x] Create `Doc/IAP/` and extract IAP, OTA, bootloader, and linker-offset notes.
+- [x] Create `Doc/RTOS/` and extract RTOS-related references where useful.
+- [x] For each extracted target document, include source paths and verification status.
+- [x] Keep `README.md` aligned with the current extraction status.
+- [x] Create `Doc/HMI/` and extract display, HMI, and specialty peripheral notes.
 
 ## Acceptance Criteria
 

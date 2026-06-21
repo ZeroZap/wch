@@ -36,10 +36,18 @@ wch-hal/
   Doc/
     DS/                     # 芯片数据手册 Datasheet
     RM/                     # 参考手册 Reference Manual
+    Family/                 # 芯片族路由和来源映射
     BLE/                    # BLE 协议与应用资料
     Core/                   # 内核、架构、工具链相关资料
+    HAL/                    # 通用外设归一化资料
     ETH/                    # 以太网相关资料
+    USB/                    # USB FS/HS/SS 相关资料
+    USBPD/                  # USB-PD、Type-C、PIOC 相关资料
+    HMI/                    # LCD、TouchKey、KEYSCAN 和专用接口资料
+    IAP/                    # IAP、OTA、bootloader、链接偏移资料
+    RTOS/                   # RTOS 示例覆盖和移植约束资料
     Ref/wch-dev-skill/      # WCH MCU AI 解读、recipes、API 和 pitfalls 的待消化来源
+    wch-dev-skill-source-index.md     # wch-dev-skill 来源索引
     wch-dev-skill-digestion-plan.md  # wch-dev-skill Markdown 提取和归档计划
   HexBinStudio.ZIP          # 工具包
   WCHISPTool_CMD.ZIP        # WCH ISP 命令行工具
@@ -54,9 +62,27 @@ wch-hal/
 | `Doc/DS/` | 芯片数据手册，例如 `CH32V002DS0.PDF`、`CH583DS1.PDF`、`CH595DS1.PDF` |
 | `Doc/RM/` | 芯片参考手册，例如 `CH32V00XRM.PDF`、`CH32FV2x_V3xRM.PDF`、`CH32V407RM.PDF` |
 | `Doc/Ref/wch-dev-skill/` | 待消化的 AI 解读资料，包含芯片族划分、场景 recipes、API 速查、常见坑和示例索引 |
+| `Doc/wch-dev-skill-source-index.md` | `Doc/Ref/wch-dev-skill` 的 Markdown 来源索引和目标专题映射 |
 | `Doc/wch-dev-skill-digestion-plan.md` | 将 `wch-dev-skill` 的 Markdown 资料提取到 `Doc` 专题目录的计划和 TODO |
 
-HAL 统一时以 `Doc/DS`、`Doc/RM` 和官方 EVT 源码为事实来源；`Doc/Ref/wch-dev-skill` 仅作为待消化输入，提取后的专题 notes 逐步沉淀到 `Doc/BLE`、`Doc/Core`、`Doc/ETH` 等目录。
+HAL 统一时以 `Doc/DS`、`Doc/RM` 和官方 EVT 源码为事实来源；`Doc/Ref/wch-dev-skill` 仅作为待消化输入，提取后的专题 notes 逐步沉淀到 `Doc/Family`、`Doc/BLE`、`Doc/Core`、`Doc/HAL`、`Doc/ETH`、`Doc/USB`、`Doc/USBPD`、`Doc/HMI`、`Doc/IAP`、`Doc/RTOS` 等目录。
+
+## wch-dev-skill 提取状态
+
+首轮 Markdown 提取已完成以下专题。每个专题文档都包含来源路径和验证状态；当前结论仍需后续对照官方 EVT、RM、DS、启动文件、链接脚本和板级资料验证。
+
+| 专题 | 目标文档 | 当前状态 |
+|------|----------|----------|
+| 芯片族路由 | `Doc/Family/family-routing.md` | 已提取，待 EVT/RM/DS 逐项验证 |
+| BLE | `Doc/BLE/wch-ble-notes.md` | 已提取，待 BLE EVT 和协议栈验证 |
+| Core / memory / startup / linker | `Doc/Core/wch-core-notes.md` | 已提取，待启动文件和链接脚本验证 |
+| HAL 外设归一化 | `Doc/HAL/wch-hal-normalization.md` | 已提取，待 EVT API 和头文件验证 |
+| Ethernet | `Doc/ETH/wch-ethernet-notes.md` | 已提取，待 WCHNET、MAC/PHY 和板级验证 |
+| USB | `Doc/USB/wch-usb-notes.md` | 已提取，待 USB EVT、描述符和控制器细节验证 |
+| USB-PD / Type-C / PIOC | `Doc/USBPD/wch-usbpd-notes.md` | 已提取，待 USB-PD EVT、芯片头文件和板级 VDD/CC 设计验证 |
+| Display / HMI / specialty | `Doc/HMI/wch-hmi-specialty-notes.md` | 已提取，待 LCD/TouchKey/KEYSCAN/外部总线和板级时序验证 |
+| IAP / OTA / bootloader | `Doc/IAP/wch-iap-ota-notes.md` | 已提取，待 Flash 布局、启动跳转和链接脚本验证 |
+| RTOS | `Doc/RTOS/wch-rtos-notes.md` | 已提取，待 RTOS EVT、kernel config、tick 和栈/堆配置验证 |
 
 ## HAL 统一思路
 
