@@ -1,83 +1,120 @@
-## Brief
-This is wch chip hal libs
+# wch-hal
 
+`wch-hal` 是一个面向 WCH / 南京沁恒 MCU 的 HAL 整理与统一化仓库。
 
+当前仓库保留了多代 EVT / SDK 原始工程、芯片手册、参考资料和 AI 解读资料，目标不是简单镜像官方包，而是从不同芯片族中抽取可复用的 HAL 能力，逐步形成面向后续 CubeX 代码生成的统一外设模型、初始化流程和工程模板。
 
-## 沁恒MCU 自研几代 RISC 内核的差异
+## 仓库目标
 
-### 稞内核代际对比
+- 汇总 WCH 多系列 MCU 的 EVT、StdPeriphDriver、启动文件、链接脚本、示例工程和工具资料。
+- 对 `CH5xx`、`CH32V00x`、`CH32V1`、`CH32V2`、`CH32V3`、`CH32H` 等系列进行 HAL 接口、外设能力和工程结构对齐。
+- 保留官方 RM / DS / EVT 资料作为事实来源，避免后续统一 HAL 时脱离芯片手册。
+- 使用 `Doc/Ref/wch-dev-skill` 中的 Markdown 资料作为待消化来源，并按 `Doc/wch-dev-skill-digestion-plan.md` 逐步提取到 `Doc` 的专题目录中；具体事实仍以官方 RM / DS / EVT 源码为准。
+- 为后续 CubeX 输出准备芯片族元数据、外设差异表、初始化模板和示例迁移路径。
 
-下表汇总了V3A/V3C/V4F等内核的核心差异：
+## 当前覆盖
 
-| 内核         | 代数/定位          | 指令集                            | 性能与频率            | 主要特性与应用                                               |
-| :----------- | :----------------- | :-------------------------------- | :-------------------- | :----------------------------------------------------------- |
-| **青稞 V3A** | 第一代 (通用)      | RV32**IMAC**                      | 最高 **80MHz**        | **特性**：硬件乘除法、PFIC快速中断控制器。 **应用**：CH32V103系列，通用MCU，主打USB 2.0全速。 |
-| **青稞 V3C** | 第二代 (无线)      | RV32**IMBC** + 自扩展             | 未明确标出            | **特性**：为无线协议栈优化指令，代码密度更高。 **应用**：CH57x/CH585系列，集成BLE/2.4G、高速USB、NFC。 |
-| **青稞 V4F** | 第四代 (互联/浮点) | RV32**IMAC** + **F** (单精度浮点) | 最高 **144MHz**       | **特性**：硬件浮点(FPU)、快速中断、免表中断。 **应用**：CH32V307/CH32V317系列，互联型MCU，集成USB高速+以太网。 |
-| **青稞 V5F** | 第五代 (高性能)    | -                                 | **5.73 CoreMark/MHz** | **特性**：性能超越Arm M7，优化中断和调试接口。 **应用**：CH32H417等，用于超高速USB+以太网等场景。 |
+| 方向 | 当前仓库内容 | 统一 HAL 关注点 |
+|------|--------------|-----------------|
+| CH5xx / CH57x / CH58x / CH59x | `CH572EVT`、`CH573EVT`、`CH583EVT`、`CH585EVT`、`CH592EVT`、`CH595EVT` | BLE、USB、I2C、SPI、UART、Timer、PWM、ADC、Flash、低功耗、8051/青稞差异 |
+| CH32V00x / 低成本 RISC-V | `CH32X035EVT`、`Doc/DS`、`Doc/RM` 中的 CH32V00x / CH32X035 资料 | 小封装资源约束、GPIO、ADC、Timer、OPA/CMP、USB-PD / PIOC 差异 |
+| CH32V1 | `CH32V103EVT`、`CH32xV10xRM.PDF` | CH32V10x StdPeriphDriver、USB FS、通用外设初始化模板 |
+| CH32V2 | `CH32V20xEVT`、`CH32FV2x_V3xRM.PDF` | BLE / USB / ETH / CAN 等增强外设，V2/V3 共用 RM 下的差异拆分 |
+| CH32V3 | `CH32V307EVT`、`CH32FV2x_V3xRM.PDF` | FPU、高速互联、ETH、USB HS、FSMC、CAN、DMA、复杂时钟树 |
+| CH32V4 / CH32H 高性能方向 | `CH32V407EVT`、CH32V407 RM/DS、`Doc/Ref/wch-dev-skill/chips/ch32h-highperf` 待提取资料 | LTDC、ARGB、USB HS/SS、ETH、高性能中断和多核/高性能芯片抽象 |
+| CH32X | `CH32X035EVT`、`CH32X315EVT` | USB-PD、PIOC、USB、专用外设与通用 CH32 HAL 的边界 |
+| CH32M / ARM 参考 | `CH32M030EVT` | 与 CH32F/STM32 风格 StdPeriphDriver 的兼容性参考 |
+| CH569 | `CH569EVT` | USB3、ETH、eMMC 等高速接口作为高性能外设参考 |
 
-------
+## 目录结构
 
-### 🔍 关键差异解读
+```text
+wch-hal/
+  README.md                 # 仓库定位与整理路线
+  CH32*EVT/                 # CH32 系列官方 EVT / SDK 工程
+  CH5*EVT/                  # CH57x / CH58x / CH59x / CH569 等 EVT 工程
+  Doc/
+    DS/                     # 芯片数据手册 Datasheet
+    RM/                     # 参考手册 Reference Manual
+    BLE/                    # BLE 协议与应用资料
+    Core/                   # 内核、架构、工具链相关资料
+    ETH/                    # 以太网相关资料
+    Ref/wch-dev-skill/      # WCH MCU AI 解读、recipes、API 和 pitfalls 的待消化来源
+    wch-dev-skill-digestion-plan.md  # wch-dev-skill Markdown 提取和归档计划
+  HexBinStudio.ZIP          # 工具包
+  WCHISPTool_CMD.ZIP        # WCH ISP 命令行工具
+```
 
-#### 1. 代数与演进路线
+## 文档归档
 
-- **V3A (第一代)**: 2020年随CH32V103推出，是沁恒首款自研32位RISC-V内核，定位通用MCU。
+根目录不再放置 RM / DS 手册，手册按用途归档：
 
-- **V3C (第二代)**: 在V3A基础上迭代，为无线和高速接口（如BLE、USB）深度优化，应用于CH57x、CH585等SoC。
+| 目录 | 内容 |
+|------|------|
+| `Doc/DS/` | 芯片数据手册，例如 `CH32V002DS0.PDF`、`CH583DS1.PDF`、`CH595DS1.PDF` |
+| `Doc/RM/` | 芯片参考手册，例如 `CH32V00XRM.PDF`、`CH32FV2x_V3xRM.PDF`、`CH32V407RM.PDF` |
+| `Doc/Ref/wch-dev-skill/` | 待消化的 AI 解读资料，包含芯片族划分、场景 recipes、API 速查、常见坑和示例索引 |
+| `Doc/wch-dev-skill-digestion-plan.md` | 将 `wch-dev-skill` 的 Markdown 资料提取到 `Doc` 专题目录的计划和 TODO |
 
-- **V4F (第四代)**: 面向高性能互联应用，引入硬件浮点单元(FPU)，用于CH32V307/CH32V317等复杂MCU。
+HAL 统一时以 `Doc/DS`、`Doc/RM` 和官方 EVT 源码为事实来源；`Doc/Ref/wch-dev-skill` 仅作为待消化输入，提取后的专题 notes 逐步沉淀到 `Doc/BLE`、`Doc/Core`、`Doc/ETH` 等目录。
 
-- **V5F (第五代)**: 性能顶峰，CoreMark/MHz指标达5.73，用于CH32H417等高端互联芯片
+## HAL 统一思路
 
-  
+### 1. 先按芯片族建立事实表
 
-#### 2. 指令集扩展 (字母含义)
+| 芯片族 | 需要抽取的信息 |
+|--------|----------------|
+| CH5xx / CH57x / CH58x / CH59x | 内核类型、存储布局、BLE 栈入口、USB 资源、睡眠模式、寄存器命名和中断属性 |
+| CH32V00x | 最小外设集合、时钟树、GPIO 复用、ADC/Timer/DMA/OPA/CMP、Flash 页大小 |
+| CH32V1 / V2 / V3 | StdPeriphDriver API 差异、外设寄存器兼容性、USB/ETH/CAN/FSMC 能力矩阵 |
+| CH32H | 高性能外设、FPU / 中断 / cache / 多核或高性能启动流程 |
 
-- **A (Atomic)**: 支持原子操作，利于多核或RTOS同步。
+### 2. 再抽象公共外设模型
 
-- **B (Bit Manipulation)**: 位操作指令，可提升协议栈和嵌入式代码的效率。
+优先统一稳定且跨系列普遍存在的外设：
 
-- **C (Compressed)**: 16位压缩指令，提高代码密度，节省Flash空间。
+- GPIO：端口、引脚、输入输出模式、上下拉、复用、速度。
+- RCC / CLOCK：系统时钟源、PLL、总线分频、外设时钟使能。
+- UART / USART：波特率、数据位、停止位、中断、DMA。
+- SPI / I2C：主从模式、时钟、片选、传输 API。
+- Timer / PWM：基础计数、输入捕获、输出比较、PWM、编码器。
+- ADC：通道、采样周期、校准、触发源、DMA。
+- USB / BLE / ETH / CAN：先保留芯片族专用层，再逐步提取公共描述。
 
-- **F (Floating-point)**: 单精度浮点单元(FPU)，用于信号处理、电机FOC等算法
+### 3. 保留芯片族适配层
 
-  
+统一 HAL 不应抹平硬件差异。建议保留三层：
 
-#### 3. 性能与中断优化
+```text
+CubeX metadata          # 芯片、封装、引脚、外设能力、时钟树和模板数据
+Unified HAL API         # 面向用户和生成器的稳定接口
+Family adapter          # CH5xx / CH32V00x / CH32V1 / CH32V2 / CH32V3 / CH32H 差异实现
+Vendor EVT source       # 官方 EVT / StdPeriphDriver / BLE stack / USB stack
+```
 
-- **V3A**: 基础性能，主频80MHz，配备PFIC中断控制器提升响应速度。
-- **V3C**: 侧重代码密度和无线协议处理效率，主频未明确标出。
-- **V4F/V5F**: 高性能代表，主频提升至144MHz，并引入“免表中断”技术，极大缩短中断延迟，适合高实时性应用
+## CubeX 准备路线
 
-#### 4. 调试接口演进
+1. 建立芯片族清单：从 `*EVT`、`Doc/DS`、`Doc/RM` 提取芯片型号、内核、Flash/RAM、封装和外设能力。
+2. 建立外设能力矩阵：先覆盖 GPIO、RCC、UART、SPI、I2C、Timer、ADC，再扩展 USB、BLE、ETH、CAN、PIOC、LTDC。
+3. 建立引脚和复用数据：按芯片型号和封装拆分，避免把同系列不同封装混为一谈。
+4. 建立初始化模板：从 EVT 示例反推最小可运行工程、时钟初始化、调试串口、链接脚本和启动文件。
+5. 建立适配层命名规范：统一外设名、实例名、IRQ 名、DMA 请求名和宏命名。
+6. 建立生成器输出结构：CubeX 输出工程应能选择芯片、外设、引脚、时钟、RTOS 和示例模板。
 
-- **V3A/V3C**: 采用**两线调试(SWD)**，相比传统四线JTAG节省I/O资源。
+## 使用建议
 
-- **V4F/V5F**: 在SWD基础上，进一步演进出**单线调试**及“单/双线自适应”技术，在节省引脚和提升下载速度间取得平衡
+- 查芯片硬件能力时，先看 `Doc/DS` 和 `Doc/RM`。
+- 查官方 API 和可运行初始化流程时，优先看对应 `*EVT/EXAM` 示例。
+- 查待消化的 AI recipes、pitfalls 和 API 索引时，看 `Doc/Ref/wch-dev-skill`；查迁移进度和目标目录时，看 `Doc/wch-dev-skill-digestion-plan.md`。
+- 做统一 HAL 时，不要直接把某一个系列的 StdPeriphDriver 当成全系列公共接口，应先建立能力矩阵和差异表。
 
-  
+## 后续整理重点
 
-------
+- 为 `CH5xx`、`CH32V00x`、`CH32V1`、`CH32V2`、`CH32V3`、`CH32H` 建立独立 family notes。
+- 从官方 EVT 中抽取每个 family 的 `StdPeriphDriver` 文件清单、启动文件、链接脚本和最小 main 模板。
+- 补齐 RM / DS 与 EVT 示例之间的对应关系。
+- 逐步形成 `metadata/`、`hal/`、`templates/` 这类面向 CubeX 的新目录。
 
-### 💡 选型指南
+## 说明
 
-- **通用控制 + USB 2.0 FS**: 选 **V3A** 内核的CH32V103系列。
-
-- **无线 + 高速 USB (BLE/2.4G)**: 选 **V3C** 内核的CH57x/CH585系列。
-
-- **高性能互联 (USB HS + 以太网 + FPU)**: 选 **V4F** 内核的CH32V307/CH32V317系列。
-
-- **极致性能 + 超高速接口 (USB 3.x)**: 选 **V5F** 内核的CH32H417等高端芯片
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  。
+本仓库目前仍处于资料整合与 HAL 抽象准备阶段。官方 EVT 和手册中的源码、协议栈、工具和文档版权归原作者或 WCH 所有；仓库中的统一 HAL 设计、索引和后续生成器元数据应独立维护，并尽量保持与官方资料可追溯。
