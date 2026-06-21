@@ -46,6 +46,7 @@ wch-hal/
     HMI/                    # LCD、TouchKey、KEYSCAN 和专用接口资料
     IAP/                    # IAP、OTA、bootloader、链接偏移资料
     RTOS/                   # RTOS 示例覆盖和移植约束资料
+    IO/                     # CAN、I2S/SAI、DVP camera 等流式接口资料
     Storage/                # SD/SDIO/eMMC/HSPI/QSPI 存储接口资料
     System/                 # 低功耗、RTC、watchdog、模拟和工具外设资料
     Ref/wch-dev-skill/      # WCH MCU AI 解读、recipes、API 和 pitfalls 的待消化来源
@@ -67,7 +68,7 @@ wch-hal/
 | `Doc/wch-dev-skill-source-index.md` | `Doc/Ref/wch-dev-skill` 的 Markdown 来源索引和目标专题映射 |
 | `Doc/wch-dev-skill-digestion-plan.md` | 将 `wch-dev-skill` 的 Markdown 资料提取到 `Doc` 专题目录的计划和 TODO |
 
-HAL 统一时以 `Doc/DS`、`Doc/RM` 和官方 EVT 源码为事实来源；`Doc/Ref/wch-dev-skill` 仅作为待消化输入，提取后的专题 notes 逐步沉淀到 `Doc/Family`、`Doc/BLE`、`Doc/Core`、`Doc/HAL`、`Doc/ETH`、`Doc/USB`、`Doc/USBPD`、`Doc/HMI`、`Doc/IAP`、`Doc/RTOS`、`Doc/Storage`、`Doc/System` 等目录。
+HAL 统一时以 `Doc/DS`、`Doc/RM` 和官方 EVT 源码为事实来源；`Doc/Ref/wch-dev-skill` 仅作为待消化输入，提取后的专题 notes 逐步沉淀到 `Doc/Family`、`Doc/BLE`、`Doc/Core`、`Doc/HAL`、`Doc/ETH`、`Doc/USB`、`Doc/USBPD`、`Doc/HMI`、`Doc/IAP`、`Doc/RTOS`、`Doc/IO`、`Doc/Storage`、`Doc/System` 等目录。
 
 ## wch-dev-skill 提取状态
 
@@ -85,6 +86,7 @@ HAL 统一时以 `Doc/DS`、`Doc/RM` 和官方 EVT 源码为事实来源；`Doc/
 | Display / HMI / specialty | `Doc/HMI/wch-hmi-specialty-notes.md` | 已提取，待 LCD/TouchKey/KEYSCAN/外部总线和板级时序验证 |
 | IAP / OTA / bootloader | `Doc/IAP/wch-iap-ota-notes.md` | 已提取，待 Flash 布局、启动跳转和链接脚本验证 |
 | RTOS | `Doc/RTOS/wch-rtos-notes.md` | 已提取，待 RTOS EVT、kernel config、tick 和栈/堆配置验证 |
+| IO / audio / CAN / camera | `Doc/IO/wch-io-media-notes.md` | 已提取，待 CAN、I2S/SAI、DVP EVT、板级和外部器件验证 |
 | Storage interfaces | `Doc/Storage/wch-storage-notes.md` | 已提取，待 SD/eMMC/QSPI/HSPI EVT、板级和器件数据手册验证 |
 | System / analog / power utilities | `Doc/System/wch-system-analog-power-notes.md` | 已提取，待低功耗、RTC、watchdog、模拟和 CRC/RNG 细节验证 |
 

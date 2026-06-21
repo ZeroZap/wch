@@ -158,6 +158,21 @@ Targets:
 - `Doc/HAL/`
 - `Doc/Family/`
 
+### IO, Audio, CAN, And Camera Interfaces
+
+Sources:
+
+- `chips/*/recipes/can_comm.md`
+- `chips/*/recipes/i2s_audio.md`
+- `chips/*/recipes/sai_audio.md`
+- `chips/*/recipes/dvp_camera.md`
+
+Targets:
+
+- `Doc/IO/`
+- `Doc/HAL/`
+- `Doc/Family/`
+
 ### System, Analog, Power, And Utility Peripherals
 
 Sources:
@@ -240,8 +255,9 @@ Targets:
 5. `Doc/ETH/wch-ethernet-notes.md`: Ethernet MAC/PHY/DMA/WCHNET notes. Done for first Markdown extraction pass; EVT and board-level verification remains.
 6. `Doc/USB/`, `Doc/USBPD/`, `Doc/IAP/`, `Doc/RTOS/`: specialized topic extraction docs. Done for first Markdown extraction pass; EVT and integration verification remains.
 7. `Doc/HMI/wch-hmi-specialty-notes.md`: display, HMI, and specialty peripheral notes. Done for first Markdown extraction pass; board-level and peripheral-specific verification remains.
-8. `Doc/Storage/wch-storage-notes.md`: SD/SDIO/eMMC/HSPI/QSPI storage interface notes. Done for first Markdown extraction pass; EVT, board, and device verification remains.
-9. `Doc/System/wch-system-analog-power-notes.md`: low-power, RTC, watchdog, analog, CRC/RNG, and utility peripheral notes. Done for first Markdown extraction pass; EVT, board, analog, and measurement verification remains.
+8. `Doc/IO/wch-io-media-notes.md`: CAN, I2S, SAI, and DVP camera interface notes. Done for first Markdown extraction pass; EVT, board, and external component verification remains.
+9. `Doc/Storage/wch-storage-notes.md`: SD/SDIO/eMMC/HSPI/QSPI storage interface notes. Done for first Markdown extraction pass; EVT, board, and device verification remains.
+10. `Doc/System/wch-system-analog-power-notes.md`: low-power, RTC, watchdog, analog, CRC/RNG, and utility peripheral notes. Done for first Markdown extraction pass; EVT, board, analog, and measurement verification remains.
 
 ## Notes
 

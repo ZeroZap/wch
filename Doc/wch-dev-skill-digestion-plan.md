@@ -36,6 +36,7 @@ Use existing directories first. Create new directories only when the topic does 
 | IAP/OTA/bootloader/linker offset | `Doc/IAP/` | Create when IAP extraction starts. |
 | FreeRTOS/RT-Thread/HarmonyOS/UCOS references | `Doc/RTOS/` | Create when RTOS extraction starts. |
 | Display, HMI, and specialty peripherals | `Doc/HMI/` | Create when display/HMI extraction starts. |
+| CAN, I2S, SAI, DVP camera streaming interfaces | `Doc/IO/` | Create when IO/media extraction starts. |
 | SD/SDIO/eMMC/HSPI/QSPI storage interfaces | `Doc/Storage/` | Create when storage interface extraction starts. |
 | Low power, RTC, watchdog, analog, CRC/RNG utilities | `Doc/System/` | Create when system utility extraction starts. |
 
@@ -125,6 +126,7 @@ Use this workflow for each topic or chip family.
 - [x] For each extracted target document, include source paths and verification status.
 - [x] Keep `README.md` aligned with the current extraction status.
 - [x] Create `Doc/HMI/` and extract display, HMI, and specialty peripheral notes.
+- [x] Create `Doc/IO/` and extract CAN, I2S, SAI, and DVP camera interface notes.
 - [x] Create `Doc/Storage/` and extract SD/SDIO/eMMC/HSPI/QSPI storage interface notes.
 - [x] Create `Doc/System/` and extract low-power, RTC, watchdog, analog, CRC/RNG, and utility peripheral notes.
 
