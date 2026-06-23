@@ -40,6 +40,7 @@ Use existing directories first. Create new directories only when the topic does 
 | CAN, I2S, SAI, DVP camera streaming interfaces | `Doc/IO/` | Create when IO/media extraction starts. |
 | SD/SDIO/eMMC/HSPI/QSPI storage interfaces | `Doc/Storage/` | Create when storage interface extraction starts. |
 | Low power, RTC, watchdog, analog, CRC/RNG utilities | `Doc/System/` | Create when system utility extraction starts. |
+| ECDC, CRC, RNG, security boundaries | `Doc/Security/` | Create when security and crypto extraction starts. |
 
 ## Extraction Rules
 
@@ -131,6 +132,7 @@ Use this workflow for each topic or chip family.
 - [x] Create `Doc/IO/` and extract CAN, I2S, SAI, and DVP camera interface notes.
 - [x] Create `Doc/Storage/` and extract SD/SDIO/eMMC/HSPI/QSPI storage interface notes.
 - [x] Create `Doc/System/` and extract low-power, RTC, watchdog, analog, CRC/RNG, and utility peripheral notes.
+- [x] Create `Doc/Security/` and extract ECDC, CRC, RNG, and security-boundary notes.
 
 ## Acceptance Criteria
 

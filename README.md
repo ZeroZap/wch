@@ -50,6 +50,7 @@ wch-hal/
     Storage/                # SD/SDIO/eMMC/HSPI/QSPI 存储接口资料
     System/                 # 低功耗、RTC、watchdog、模拟和工具外设资料
     Templates/              # 工程模板、工具链和最小工程结构资料
+    Security/               # ECDC、CRC、RNG 和安全边界资料
     Ref/wch-dev-skill/      # WCH MCU AI 解读、recipes、API 和 pitfalls 的待消化来源
     wch-dev-skill-source-index.md     # wch-dev-skill 来源索引
     wch-dev-skill-digestion-plan.md  # wch-dev-skill Markdown 提取和归档计划
@@ -69,7 +70,7 @@ wch-hal/
 | `Doc/wch-dev-skill-source-index.md` | `Doc/Ref/wch-dev-skill` 的 Markdown 来源索引和目标专题映射 |
 | `Doc/wch-dev-skill-digestion-plan.md` | 将 `wch-dev-skill` 的 Markdown 资料提取到 `Doc` 专题目录的计划和 TODO |
 
-HAL 统一时以 `Doc/DS`、`Doc/RM` 和官方 EVT 源码为事实来源；`Doc/Ref/wch-dev-skill` 仅作为待消化输入，提取后的专题 notes 逐步沉淀到 `Doc/Family`、`Doc/BLE`、`Doc/Core`、`Doc/HAL`、`Doc/ETH`、`Doc/USB`、`Doc/USBPD`、`Doc/HMI`、`Doc/IAP`、`Doc/RTOS`、`Doc/IO`、`Doc/Storage`、`Doc/System`、`Doc/Templates` 等目录。
+HAL 统一时以 `Doc/DS`、`Doc/RM` 和官方 EVT 源码为事实来源；`Doc/Ref/wch-dev-skill` 仅作为待消化输入，提取后的专题 notes 逐步沉淀到 `Doc/Family`、`Doc/BLE`、`Doc/Core`、`Doc/HAL`、`Doc/ETH`、`Doc/USB`、`Doc/USBPD`、`Doc/HMI`、`Doc/IAP`、`Doc/RTOS`、`Doc/IO`、`Doc/Storage`、`Doc/System`、`Doc/Templates`、`Doc/Security` 等目录。
 
 ## wch-dev-skill 提取状态
 
@@ -91,6 +92,7 @@ HAL 统一时以 `Doc/DS`、`Doc/RM` 和官方 EVT 源码为事实来源；`Doc/
 | Storage interfaces | `Doc/Storage/wch-storage-notes.md` | 已提取，待 SD/eMMC/QSPI/HSPI EVT、板级和器件数据手册验证 |
 | System / analog / power utilities | `Doc/System/wch-system-analog-power-notes.md` | 已提取，待低功耗、RTC、watchdog、模拟和 CRC/RNG 细节验证 |
 | Project templates | `Doc/Templates/wch-project-template-notes.md` | 已提取，待 MounRiver/Keil 工程、启动文件和链接脚本验证 |
+| Security / crypto / CRC / RNG | `Doc/Security/wch-security-crypto-notes.md` | 已提取，待 ECDC、CRC、RNG、测试向量和安全需求验证 |
 
 ## HAL 统一思路
 
