@@ -33,6 +33,7 @@ Use existing directories first. Create new directories only when the topic does 
 | USB-PD, Type-C, PIOC | `Doc/USBPD/` | Create when USB-PD extraction starts. |
 | Common GPIO/RCC/UART/SPI/I2C/ADC/Timer/Flash/DMA patterns | `Doc/HAL/` | Create as HAL normalization notes, not raw chip examples. |
 | Chip-family routing, memory map, examples, pitfalls | `Doc/Family/` | Create per-family notes when actively normalizing a family. |
+| New project templates, toolchain metadata, minimal main loops | `Doc/Templates/` | Create when project-template extraction starts. |
 | IAP/OTA/bootloader/linker offset | `Doc/IAP/` | Create when IAP extraction starts. |
 | FreeRTOS/RT-Thread/HarmonyOS/UCOS references | `Doc/RTOS/` | Create when RTOS extraction starts. |
 | Display, HMI, and specialty peripherals | `Doc/HMI/` | Create when display/HMI extraction starts. |
@@ -115,6 +116,7 @@ Use this workflow for each topic or chip family.
 - [x] Inventory all top-level skill docs: `SKILL.md`, `AGENTS.md`, `README.md`, `README_EN.md`, `CHANGELOG.md`.
 - [x] Generate a complete source index of `Doc/Ref/wch-dev-skill/**/*.md` grouped by family and topic.
 - [x] Extract global chip-family routing into a repository-specific family index under `Doc/Family/`.
+- [x] Create `Doc/Templates/` and extract new-project, toolchain, linker, startup, and minimal main-loop notes.
 - [x] Extract BLE notes from `ch57x` and `ch58x-ch59x` into `Doc/BLE/`.
 - [x] Extract memory layout, startup, linker, interrupt, and architecture pitfalls into `Doc/Core/`.
 - [x] Extract Ethernet notes into `Doc/ETH/`.
