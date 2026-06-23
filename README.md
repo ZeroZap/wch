@@ -79,6 +79,7 @@ HAL 统一时以 `Doc/DS`、`Doc/RM` 和官方 EVT 源码为事实来源；`Doc/
 | 专题 | 目标文档 | 当前状态 |
 |------|----------|----------|
 | 芯片族路由 | `Doc/Family/family-routing.md` | 已提取，待 EVT/RM/DS 逐项验证 |
+| 芯片族归一化入口 | `Doc/Family/family-normalization-notes.md` | 已提取，待逐 family EVT/RM/DS 验证和拆分 |
 | BLE | `Doc/BLE/wch-ble-notes.md` | 已提取，待 BLE EVT 和协议栈验证 |
 | Core / memory / startup / linker | `Doc/Core/wch-core-notes.md` | 已提取，待启动文件和链接脚本验证 |
 | HAL 外设归一化 | `Doc/HAL/wch-hal-normalization.md` | 已提取，待 EVT API 和头文件验证 |
