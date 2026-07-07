@@ -157,7 +157,7 @@ Vendor EVT source       # 官方 EVT / StdPeriphDriver / BLE stack / USB stack
 
 ## 后续整理重点
 
-- 为 `CH5xx`、`CH32V00x`、`CH32V1`、`CH32V2`、`CH32V3`、`CH32H` 建立独立 family notes。
+- 对已建立的 `Doc/Family/*-notes.md` 逐族做 EVT/RM/DS 验证和细化。
 - 从官方 EVT 中抽取每个 family 的 `StdPeriphDriver` 文件清单、启动文件、链接脚本和最小 main 模板。
 - 补齐 RM / DS 与 EVT 示例之间的对应关系。
 - 逐步形成 `metadata/`、`hal/`、`templates/` 这类面向 CubeX 的新目录。
