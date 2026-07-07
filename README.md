@@ -86,6 +86,10 @@ HAL 统一时以 `Doc/DS`、`Doc/RM` 和官方 EVT 源码为事实来源；`Doc/
 | CH57x family | `Doc/Family/ch57x-notes.md` | 已提取，待 CH57x EVT、BLE 库、IAP/DataFlash 和 CH579 特例验证 |
 | CH32X / CH6xx USB-PD family | `Doc/Family/ch32x-usbpd-notes.md` | 已提取，待 CH32X/CH6xx EVT、USB-PD/PIOC 和小内存布局验证 |
 | CH32H high-performance family | `Doc/Family/ch32h-highperf-notes.md` | 已提取，待 CH32H417 EVT、V5F/V3F 链接和高性能外设验证 |
+| CH32F / CH32M ARM family | `Doc/Family/ch32f-arm-notes.md` | 已提取，待 CH32F10x/F20x/CH32M030 EVT、Keil/MounRiver 和绝对 Flash 地址验证 |
+| CH32V low-cost / CH32L103 family | `Doc/Family/ch32v-lowcost-notes.md` | 已提取，待小内存、Flash 页大小、USB-PD/USB/CAN/RTOS 覆盖验证 |
+| CH561 / CH563 ARM7TDMI family | `Doc/Family/ch561-ch563-notes.md` | 已提取，待 Keil、scatter、SYSFREQ、NET/USB/uC/OS-II 验证 |
+| CH5xx 8051 family | `Doc/Family/ch5xx-8051-notes.md` | 已提取，待 C51、SFR、DataFlash、ISP bootloader 和 USB/Type-C 验证 |
 | BLE | `Doc/BLE/wch-ble-notes.md` | 已提取，待 BLE EVT 和协议栈验证 |
 | Core / memory / startup / linker | `Doc/Core/wch-core-notes.md` | 已提取，待启动文件和链接脚本验证 |
 | HAL 外设归一化 | `Doc/HAL/wch-hal-normalization.md` | 已提取，待 EVT API 和头文件验证 |

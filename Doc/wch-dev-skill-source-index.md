@@ -267,17 +267,18 @@ Targets:
 2. `Doc/Family/family-normalization-notes.md`: family-level normalization entry point and future per-family note template. Done for first Markdown extraction pass; per-family EVT/RM/DS verification remains.
 3. `Doc/Family/ch32v-general-notes.md`, `Doc/Family/ch58x-ch59x-notes.md`, `Doc/Family/ch56x-ethernet-notes.md`: first per-family extraction notes. Done for first Markdown extraction pass; exact EVT/RM/DS verification remains.
 4. `Doc/Family/ch57x-notes.md`, `Doc/Family/ch32x-usbpd-notes.md`, `Doc/Family/ch32h-highperf-notes.md`: second per-family extraction notes. Done for first Markdown extraction pass; exact EVT/RM/DS verification remains.
-5. `Doc/Templates/wch-project-template-notes.md`: new-project, toolchain, linker, startup, and minimal main-loop notes. Done for first Markdown extraction pass; EVT project-file verification remains.
-6. `Doc/Security/wch-security-crypto-notes.md`: ECDC, CRC, RNG, and security-boundary notes. Done for first Markdown extraction pass; EVT, test-vector, and security review verification remains.
-7. `Doc/BLE/wch-ble-notes.md`: CH57x and CH58x/CH59x BLE rules, config, and examples. Done for first Markdown extraction pass; EVT verification remains.
-8. `Doc/Core/wch-core-notes.md`: memory layout, interrupt attributes, startup/linker rules. Done for first Markdown extraction pass; EVT linker/startup verification remains.
-9. `Doc/HAL/wch-hal-normalization.md`: common peripheral normalization notes. Done for first Markdown extraction pass; EVT API verification remains.
-10. `Doc/ETH/wch-ethernet-notes.md`: Ethernet MAC/PHY/DMA/WCHNET notes. Done for first Markdown extraction pass; EVT and board-level verification remains.
-11. `Doc/USB/`, `Doc/USBPD/`, `Doc/IAP/`, `Doc/RTOS/`: specialized topic extraction docs. Done for first Markdown extraction pass; EVT and integration verification remains.
-12. `Doc/HMI/wch-hmi-specialty-notes.md`: display, HMI, and specialty peripheral notes. Done for first Markdown extraction pass; board-level and peripheral-specific verification remains.
-13. `Doc/IO/wch-io-media-notes.md`: CAN, I2S, SAI, and DVP camera interface notes. Done for first Markdown extraction pass; EVT, board, and external component verification remains.
-14. `Doc/Storage/wch-storage-notes.md`: SD/SDIO/eMMC/HSPI/QSPI storage interface notes. Done for first Markdown extraction pass; EVT, board, and device verification remains.
-15. `Doc/System/wch-system-analog-power-notes.md`: low-power, RTC, watchdog, analog, CRC/RNG, and utility peripheral notes. Done for first Markdown extraction pass; EVT, board, analog, and measurement verification remains.
+5. `Doc/Family/ch32f-arm-notes.md`, `Doc/Family/ch32v-lowcost-notes.md`, `Doc/Family/ch561-ch563-notes.md`, `Doc/Family/ch5xx-8051-notes.md`: remaining per-family extraction notes. Done for first Markdown extraction pass; exact EVT/RM/DS/toolchain verification remains.
+6. `Doc/Templates/wch-project-template-notes.md`: new-project, toolchain, linker, startup, and minimal main-loop notes. Done for first Markdown extraction pass; EVT project-file verification remains.
+7. `Doc/Security/wch-security-crypto-notes.md`: ECDC, CRC, RNG, and security-boundary notes. Done for first Markdown extraction pass; EVT, test-vector, and security review verification remains.
+8. `Doc/BLE/wch-ble-notes.md`: CH57x and CH58x/CH59x BLE rules, config, and examples. Done for first Markdown extraction pass; EVT verification remains.
+9. `Doc/Core/wch-core-notes.md`: memory layout, interrupt attributes, startup/linker rules. Done for first Markdown extraction pass; EVT linker/startup verification remains.
+10. `Doc/HAL/wch-hal-normalization.md`: common peripheral normalization notes. Done for first Markdown extraction pass; EVT API verification remains.
+11. `Doc/ETH/wch-ethernet-notes.md`: Ethernet MAC/PHY/DMA/WCHNET notes. Done for first Markdown extraction pass; EVT and board-level verification remains.
+12. `Doc/USB/`, `Doc/USBPD/`, `Doc/IAP/`, `Doc/RTOS/`: specialized topic extraction docs. Done for first Markdown extraction pass; EVT and integration verification remains.
+13. `Doc/HMI/wch-hmi-specialty-notes.md`: display, HMI, and specialty peripheral notes. Done for first Markdown extraction pass; board-level and peripheral-specific verification remains.
+14. `Doc/IO/wch-io-media-notes.md`: CAN, I2S, SAI, and DVP camera interface notes. Done for first Markdown extraction pass; EVT, board, and external component verification remains.
+15. `Doc/Storage/wch-storage-notes.md`: SD/SDIO/eMMC/HSPI/QSPI storage interface notes. Done for first Markdown extraction pass; EVT, board, and device verification remains.
+16. `Doc/System/wch-system-analog-power-notes.md`: low-power, RTC, watchdog, analog, CRC/RNG, and utility peripheral notes. Done for first Markdown extraction pass; EVT, board, analog, and measurement verification remains.
 
 ## Notes
 
