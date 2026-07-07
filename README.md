@@ -83,6 +83,9 @@ HAL 统一时以 `Doc/DS`、`Doc/RM` 和官方 EVT 源码为事实来源；`Doc/
 | CH32V general family | `Doc/Family/ch32v-general-notes.md` | 已提取，待 CH32V103/V20x/V307/V407 EVT/RM/DS 验证 |
 | CH58x / CH59x family | `Doc/Family/ch58x-ch59x-notes.md` | 已提取，待 CH583/CH585/CH592/CH595 EVT、BLE 库和板级验证 |
 | CH56x Ethernet family | `Doc/Family/ch56x-ethernet-notes.md` | 已提取，待 CH569 EVT、RAMX/DMA、ETH/USB3/eMMC/ECDC 验证 |
+| CH57x family | `Doc/Family/ch57x-notes.md` | 已提取，待 CH57x EVT、BLE 库、IAP/DataFlash 和 CH579 特例验证 |
+| CH32X / CH6xx USB-PD family | `Doc/Family/ch32x-usbpd-notes.md` | 已提取，待 CH32X/CH6xx EVT、USB-PD/PIOC 和小内存布局验证 |
+| CH32H high-performance family | `Doc/Family/ch32h-highperf-notes.md` | 已提取，待 CH32H417 EVT、V5F/V3F 链接和高性能外设验证 |
 | BLE | `Doc/BLE/wch-ble-notes.md` | 已提取，待 BLE EVT 和协议栈验证 |
 | Core / memory / startup / linker | `Doc/Core/wch-core-notes.md` | 已提取，待启动文件和链接脚本验证 |
 | HAL 外设归一化 | `Doc/HAL/wch-hal-normalization.md` | 已提取，待 EVT API 和头文件验证 |

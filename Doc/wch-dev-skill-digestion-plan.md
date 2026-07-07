@@ -119,6 +119,7 @@ Use this workflow for each topic or chip family.
 - [x] Extract global chip-family routing into a repository-specific family index under `Doc/Family/`.
 - [x] Create a family-normalization entry note for future per-family HAL notes and EVT verification.
 - [x] Create first per-family notes for CH32V general, CH58x/CH59x, and CH56x Ethernet families.
+- [x] Create second per-family notes for CH57x, CH32X/CH6xx USB-PD, and CH32H high-performance families.
 - [x] Create `Doc/Templates/` and extract new-project, toolchain, linker, startup, and minimal main-loop notes.
 - [x] Extract BLE notes from `ch57x` and `ch58x-ch59x` into `Doc/BLE/`.
 - [x] Extract memory layout, startup, linker, interrupt, and architecture pitfalls into `Doc/Core/`.
