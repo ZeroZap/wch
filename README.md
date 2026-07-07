@@ -80,6 +80,9 @@ HAL 统一时以 `Doc/DS`、`Doc/RM` 和官方 EVT 源码为事实来源；`Doc/
 |------|----------|----------|
 | 芯片族路由 | `Doc/Family/family-routing.md` | 已提取，待 EVT/RM/DS 逐项验证 |
 | 芯片族归一化入口 | `Doc/Family/family-normalization-notes.md` | 已提取，待逐 family EVT/RM/DS 验证和拆分 |
+| CH32V general family | `Doc/Family/ch32v-general-notes.md` | 已提取，待 CH32V103/V20x/V307/V407 EVT/RM/DS 验证 |
+| CH58x / CH59x family | `Doc/Family/ch58x-ch59x-notes.md` | 已提取，待 CH583/CH585/CH592/CH595 EVT、BLE 库和板级验证 |
+| CH56x Ethernet family | `Doc/Family/ch56x-ethernet-notes.md` | 已提取，待 CH569 EVT、RAMX/DMA、ETH/USB3/eMMC/ECDC 验证 |
 | BLE | `Doc/BLE/wch-ble-notes.md` | 已提取，待 BLE EVT 和协议栈验证 |
 | Core / memory / startup / linker | `Doc/Core/wch-core-notes.md` | 已提取，待启动文件和链接脚本验证 |
 | HAL 外设归一化 | `Doc/HAL/wch-hal-normalization.md` | 已提取，待 EVT API 和头文件验证 |
