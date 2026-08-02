@@ -1,10 +1,10 @@
-# CH57x Family Notes
+# CH57x 系列说明
 
-This document extracts CH57x guidance from `Doc/Ref/wch-dev-skill` into repository-specific normalization notes for BLE, USB, RF, IAP, HMI, and template work.
+本文档从 `Doc/Ref/wch-dev-skill` 提取 CH57x 指导，形成针对 BLE、USB、RF、IAP、HMI 和模板工作的仓库专用归一化说明。
 
-Official EVT examples, BLE libraries, RM, DS, startup files, linker/scatter files, board schematics, and current repository source remain the final authority.
+官方 EVT 示例、BLE 库、RM、DS、启动代码文件、链接器/分散加载文件、开发板原理图和当前仓库源代码仍是最终依据。
 
-## Source Files
+## 源文件
 
 - `Doc/Ref/wch-dev-skill/chips/ch57x/resources/memory_layout.md`
 - `Doc/Ref/wch-dev-skill/chips/ch57x/resources/example_list.md`
@@ -16,60 +16,60 @@ Official EVT examples, BLE libraries, RM, DS, startup files, linker/scatter file
 - `Doc/Family/family-routing.md`
 - `Doc/Family/family-normalization-notes.md`
 
-## Supported Chips And EVT Roots
+## 支持的芯片和 EVT 根目录
 
-| Chip/source group | Repository EVT root | Architecture/toolchain from source notes | Key constraints |
+| 芯片/源组 | 仓库 EVT 根目录 | 源说明中的架构/工具链 | 关键约束 |
 |---|---|---|---|
-| CH572 / CH573-style CH57x | `CH572EVT/`, `CH573EVT/` | RISC-V, MounRiver, `Link.ld` | BLE stack, `.highcode`, 18 KB RAM source layout, DataFlash/image flags. |
-| CH579 legacy source note | Source notes mention CH579EVT | ARM Cortex-M0, Keil `.sct` | Different architecture, Flash/RAM map, NET/LCD examples. Verify whether this repository carries the exact EVT before using. |
+| CH572 / CH573 风格 CH57x | `CH572EVT/`, `CH573EVT/` | RISC-V、MounRiver、`Link.ld` | BLE 栈、`.highcode`；两款芯片的 Flash/RAM 起点和容量不同。 |
+| CH579 旧版源说明 | 源说明提及 CH579EVT | ARM Cortex-M0、Keil `.sct` | 架构、Flash/RAM 映射及 NET/LCD 示例不同。使用前需验证本仓库是否包含确切的 EVT。 |
 
-## Architecture, Toolchain, Startup, Linker
+## 架构、工具链、启动代码、链接器
 
-- CH572-style sources use MounRiver with linked `Ld`, `RVMSIS`, `Startup`, and `StdPeriphDriver` directories.
-- CH579 source notes use Keil scatter files and ARM Cortex-M0 startup, not the CH572 RISC-V flow.
-- `.highcode` is loaded from Flash and executed from RAM for interrupt handlers, Flash routines, and timing-sensitive BLE paths.
-- BLE projects require `config.h`, BLE stack library, HAL, role/profile source, and `Main_Circulation()`.
+- CH572 风格源使用 MounRiver，并链接 `Ld`、`RVMSIS`、`Startup` 和 `StdPeriphDriver` 目录。
+- CH579 源说明使用 Keil 分散加载文件和 ARM Cortex-M0 启动代码，而非 CH572 RISC-V 流程。
+- `.highcode` 从 Flash 加载并在 RAM 中执行，用于中断处理程序、Flash 例程和时序敏感的 BLE 路径。
+- BLE 工程需要 `config.h`、BLE 栈库、HAL、角色/配置文件源代码和 `Main_Circulation()`。
 
-## Memory And Boot Layout
+## 内存和引导布局
 
-- CH572 source note: Flash app area from `0x00001000` to `0x0006FFFF`, 512-byte DataFlash at `0x00077E00`, RAM at `0x20003800` length 18 KB.
-- CH572 IAP source note: 4 KB bootloader at start, app origin `0x1000`; BackupUpgrade layout uses Image A/B, IAP image, and DataFlash image flags.
-- CH579 source note: app starts at `0x00000000`, DataFlash near `0x3E800`, bootloader near top at `0x3F000`, RAM split into two banks.
-- BLE heap is configured by `BLE_MEMHEAP_SIZE`; source notes mention CH572 default around 6 KB and CH579 around 8 KB.
+- 当前默认链接脚本中，CH572 为 240 KB Flash，RAM 位于 `0x20000000`、长度 12 KB；CH573 为 448 KB Flash，RAM 位于 `0x20003800`、长度 18 KB。不得交换两者布局。
+- CH572 IAP 源说明：起始位置有 4 KB 引导加载程序，应用起始地址为 `0x1000`；BackupUpgrade 布局使用镜像 A/B、IAP 镜像和 DataFlash 镜像标志。
+- CH579 源说明：应用从 `0x00000000` 开始，DataFlash 位于 `0x3E800` 附近，引导加载程序位于顶部 `0x3F000` 附近，RAM 分为两个区。
+- BLE 堆由 `BLE_MEMHEAP_SIZE` 配置；源说明提到 CH572 默认约 6 KB，CH579 约 8 KB。
 
-## Peripheral And Example Coverage
+## 外设和示例覆盖范围
 
-Source examples include ADC/TouchKey, CMP, Flash/DataFlash, I2C, IAP over USB/UART, KEYSCAN, power management, PWMX, RF, SPI, Timer, UART, USB device/host, and BLE roles/profiles. CH579 source notes additionally mention segment LCD and WCHNET-style NET examples.
+源示例包括 ADC/TouchKey、CMP、Flash/DataFlash、I2C、基于 USB/UART 的 IAP、KEYSCAN、电源管理、PWMX、RF、SPI、定时器、UART、USB 设备/主机以及 BLE 角色/配置文件。CH579 源说明还提及段式 LCD 和 WCHNET 风格的 NET 示例。
 
-## Topic Cross-References
+## 主题交叉引用
 
-- BLE: `Doc/BLE/wch-ble-notes.md`.
-- USB: `Doc/USB/wch-usb-notes.md`.
-- IAP/OTA: `Doc/IAP/wch-iap-ota-notes.md`.
-- KEYSCAN/TouchKey/LCD: `Doc/HMI/wch-hmi-specialty-notes.md`.
-- Low power/system: `Doc/System/wch-system-analog-power-notes.md`.
-- Project templates: `Doc/Templates/wch-project-template-notes.md`.
+- BLE：`Doc/BLE/wch-ble-notes.md`。
+- USB：`Doc/USB/wch-usb-notes.md`。
+- IAP/OTA：`Doc/IAP/wch-iap-ota-notes.md`。
+- KEYSCAN/TouchKey/LCD：`Doc/HMI/wch-hmi-specialty-notes.md`。
+- 低功耗/系统：`Doc/System/wch-system-analog-power-notes.md`。
+- 工程模板：`Doc/Templates/wch-project-template-notes.md`。
 
-## Known Family Pitfalls
+## 已知系列陷阱
 
-- BLE init order is strict: clock, BLE library, HAL, GAP role, app init, then `Main_Circulation()`.
-- `Main_Circulation()` must run the BLE/TMOS event loop; `__WFI()` alone does not process BLE events.
-- BLE heap and `BLE_BUFF_MAX_LEN` must be sized for role, MTU, services, and connection count.
-- ATT MTU is `BLE_BUFF_MAX_LEN - 4` in source notes.
-- GAP/GATT/DeviceInfo services must register before custom services.
-- Interrupt handlers should use WCH fast interrupt attributes and `.highcode` placement where required.
-- Flash writes require 256-byte erase/read-modify-write handling.
-- IAP app origin differs between CH572-style and CH579-style layouts.
+- BLE 初始化顺序很严格：时钟、BLE 库、HAL、GAP 角色、应用初始化，然后是 `Main_Circulation()`。
+- `Main_Circulation()` 必须运行 BLE/TMOS 事件循环；仅使用 `__WFI()` 不会处理 BLE 事件。
+- BLE 堆和 `BLE_BUFF_MAX_LEN` 的大小必须适配角色、MTU、服务和连接数。
+- 源说明中的 ATT MTU 为 `BLE_BUFF_MAX_LEN - 4`。
+- GAP/GATT/DeviceInfo 服务必须在自定义服务之前注册。
+- 中断处理程序应在需要时使用 WCH 快速中断属性并放置在 `.highcode` 中。
+- Flash 写入需要进行 256 字节擦除/读取-修改-写入处理。
+- CH572 风格和 CH579 风格布局的 IAP 应用起始地址不同。
 
-## Verification Checklist
+## 验证清单
 
-- Verify exact EVT roots and whether CH579 material is present and relevant in this repository.
-- Verify BLE library path, header names, `config.h`, heap/buffer settings, role example, and `Main_Circulation()` call site.
-- Verify linker/scatter files, RAM origin, DataFlash address, IAP/OTA image flags, and startup vector behavior.
-- Verify USB, RF, KEYSCAN, CMP, TouchKey, and power examples against active headers and board schematics.
+- 验证确切的 EVT 根目录，以及本仓库是否存在相关 CH579 资料。
+- 验证 BLE 库路径、头文件名、`config.h`、堆/缓冲区设置、角色示例和 `Main_Circulation()` 调用位置。
+- 验证链接器/分散加载文件、RAM 起始地址、DataFlash 地址、IAP/OTA 镜像标志和启动向量行为。
+- 根据当前头文件和开发板原理图验证 USB、RF、KEYSCAN、CMP、TouchKey 和电源示例。
 
-## Verification Status
+## 验证状态
 
-- Extracted from `Doc/Ref/wch-dev-skill` Markdown sources and repository topic notes listed above.
-- Not fully verified against all CH57x EVT trees, BLE libraries, RM, DS, project files, startup files, linker/scatter files, packages, or board schematics in this pass.
-- Treat CH579-related details especially as source-note leads until matched to actual repository EVT material.
+- 根据 `Doc/Ref/wch-dev-skill` Markdown 源和上述仓库主题说明提取。
+- 本轮尚未针对所有 CH57x EVT 树、BLE 库、RM、DS、工程文件、启动代码文件、链接器/分散加载文件、封装或开发板原理图进行完整验证。
+- 在与实际仓库 EVT 资料匹配前，尤其应将 CH579 相关细节视为源说明线索。

@@ -1,10 +1,10 @@
-# CH561 And CH563 ARM7TDMI Family Notes
+# CH561 和 CH563 ARM7TDMI 系列说明
 
-This document extracts CH561 and CH563 guidance from `Doc/Ref/wch-dev-skill` into repository-specific normalization notes for ARM7TDMI, Ethernet, USB, storage, RTOS, and template work.
+本文档从 `Doc/Ref/wch-dev-skill` 提取 CH561 和 CH563 指导，形成针对 ARM7TDMI、以太网、USB、存储、RTOS 和模板工作的仓库专用归一化说明。
 
-Official EVT examples, RM, DS, startup files, scatter files, board schematics, PHY/storage datasheets, and current repository source remain the final authority.
+官方 EVT 示例、RM、DS、启动代码文件、分散加载文件、开发板原理图、PHY/存储器件数据手册和当前仓库源代码仍是最终依据。
 
-## Source Files
+## 源文件
 
 - `Doc/Ref/wch-dev-skill/chips/ch561-ch563/resources/memory_layout.md`
 - `Doc/Ref/wch-dev-skill/chips/ch561-ch563/resources/example_list.md`
@@ -14,61 +14,61 @@ Official EVT examples, RM, DS, startup files, scatter files, board schematics, P
 - `Doc/Family/family-routing.md`
 - `Doc/Family/family-normalization-notes.md`
 
-## Supported Chips And EVT Roots
+## 支持的芯片和 EVT 根目录
 
-| Chip | Repository EVT root | Architecture/toolchain | Key differences |
+| 芯片 | 仓库 EVT 根目录 | 架构/工具链 | 关键差异 |
 |---|---|---|---|
-| CH561 | Verify `CH561EVT/` availability | ARM7TDMI, Keil MDK | Ethernet, no USB, PA/PB GPIO, no RTOS in source table. |
-| CH563 | Verify `CH563EVT/` availability | ARM7TDMI, Keil MDK | Ethernet, USB, GPIO PD, uC/OS-II, more NET examples. |
+| CH561 | 验证 `CH561EVT/` 可用性 | ARM7TDMI、Keil MDK | 以太网、无 USB、PA/PB GPIO，源表中无 RTOS。 |
+| CH563 | 验证 `CH563EVT/` 可用性 | ARM7TDMI、Keil MDK | 以太网、USB、GPIO PD、uC/OS-II，更多 NET 示例。 |
 
-## Architecture, Toolchain, Startup, Linker
+## 架构、工具链、启动代码、链接器
 
-- Architecture: ARM7TDMI with register-level `R8_`, `R16_`, and `R32_` access.
-- Toolchain: Keil MDK `.uvproj` / `.uvopt` with scatter file and ARM startup.
-- Shared source files include `CH561SFR.H`, `CH563SFR.H`, `CH561BAS.H`, `CH563BAS.H`, `SYSFREQ.C/H`, `STARTUP.S`, `ISPXT56X.H`, and `ISPXT56X.O`.
-- System frequency and SRAM size are configured in `SYSFREQ.H`; startup/scatter must match.
+- 架构：ARM7TDMI，使用寄存器级 `R8_`、`R16_` 和 `R32_` 访问。
+- 工具链：带分散加载文件和 ARM 启动代码的 Keil MDK `.uvproj` / `.uvopt`。
+- 共享源文件包括 `CH561SFR.H`、`CH563SFR.H`、`CH561BAS.H`、`CH563BAS.H`、`SYSFREQ.C/H`、`STARTUP.S`、`ISPXT56X.H` 和 `ISPXT56X.O`。
+- 系统频率和 SRAM 大小在 `SYSFREQ.H` 中配置；启动代码/分散加载文件必须匹配。
 
-## Memory And Boot Layout
+## 内存和引导布局
 
-- Source notes list 224 KB code Flash at `0x00000000`, 28 KB Data-Flash at `0x00038000`, SFR at `0x00400000`, SRAM from `0x00808000`, and optional XBUS at `0x00C00000`.
-- Flash erase unit is 4 KB and minimum write is 4 bytes in source notes.
-- Data-Flash is byte-writable and intended for frequently updated config/counters.
-- SRAM is configurable by `MEM_DATA`: 32/64/96 KB source options.
-- Scatter files define code and RAM regions; do not use CH32 RISC-V linker scripts.
+- 源说明列出：`0x00000000` 处有 224 KB 代码 Flash，`0x00038000` 处有 28 KB Data-Flash，SFR 位于 `0x00400000`，SRAM 从 `0x00808000` 开始，可选 XBUS 位于 `0x00C00000`。
+- 源说明中的 Flash 擦除单元为 4 KB，最小写入单位为 4 字节。
+- Data-Flash 可按字节写入，适合存放频繁更新的配置/计数器。
+- SRAM 可通过 `MEM_DATA` 配置：源中提供 32/64/96 KB 选项。
+- 分散加载文件定义代码和 RAM 区域；不要使用 CH32 RISC-V 链接脚本。
 
-## Peripheral And Example Coverage
+## 外设和示例覆盖范围
 
-Source examples include ADC, Flash/EEPROM, GPIO, IAP/ISP, interrupts, Ethernet NET examples, SPI0/1, timers, UART0/1, watchdog, and shared source. CH563 adds USB, GPIO PD, parallel/external bus, power examples, uC/OS-II, and broader NET examples.
+源示例包括 ADC、Flash/EEPROM、GPIO、IAP/ISP、中断、以太网 NET 示例、SPI0/1、定时器、UART0/1、看门狗和共享源代码。CH563 还增加了 USB、GPIO PD、并行/外部总线、电源示例、uC/OS-II 和更广泛的 NET 示例。
 
-## Topic Cross-References
+## 主题交叉引用
 
-- Ethernet/WCHNET-style rules: `Doc/ETH/wch-ethernet-notes.md`.
-- Templates: `Doc/Templates/wch-project-template-notes.md`.
-- Storage/eMMC/HSPI source boundaries: `Doc/Storage/wch-storage-notes.md`.
-- IO/media: `Doc/IO/wch-io-media-notes.md`.
-- Security note explicitly records no ECDC engine: `Doc/Security/wch-security-crypto-notes.md`.
-- RTOS/uC/OS-II: `Doc/RTOS/wch-rtos-notes.md`.
+- 以太网/WCHNET 风格规则：`Doc/ETH/wch-ethernet-notes.md`。
+- 模板：`Doc/Templates/wch-project-template-notes.md`。
+- 存储/eMMC/HSPI 源边界：`Doc/Storage/wch-storage-notes.md`。
+- IO/媒体：`Doc/IO/wch-io-media-notes.md`。
+- 安全说明明确记录无 ECDC 引擎：`Doc/Security/wch-security-crypto-notes.md`。
+- RTOS/uC/OS-II：`Doc/RTOS/wch-rtos-notes.md`。
 
-## Known Family Pitfalls
+## 已知系列陷阱
 
-- CH561/CH563 are ARM7TDMI, not CH569 RISC-V; do not reuse CH569 APIs or MounRiver project assumptions.
-- CH563 has USB and GPIO PD; CH561 does not.
-- Peripheral clocks are controlled by `R8_SLP_CLK_OFF0/1` with inverse-style off bits in source notes.
-- SRAM size and stack top depend on `MEM_DATA` and startup/scatter configuration.
-- Data-Flash behavior differs from code Flash and from CH32 Flash APIs.
-- Network examples use CH561NET/CH563 NET library flows; verify task/polling model and PHY details.
-- ECDC is unavailable on CH561/CH563 per source notes.
+- CH561/CH563 是 ARM7TDMI，而非 CH569 RISC-V；不要复用 CH569 API 或 MounRiver 工程假设。
+- CH563 具有 USB 和 GPIO PD；CH561 没有。
+- 源说明中外设时钟由 `R8_SLP_CLK_OFF0/1` 控制，采用反向风格的关闭位。
+- SRAM 大小和栈顶取决于 `MEM_DATA` 及启动代码/分散加载配置。
+- Data-Flash 行为不同于代码 Flash，也不同于 CH32 Flash API。
+- 网络示例使用 CH561NET/CH563 NET 库流程；需验证任务/轮询模型和 PHY 细节。
+- 根据源说明，CH561/CH563 不支持 ECDC。
 
-## Verification Checklist
+## 验证清单
 
-- Verify EVT roots, Keil projects, scatter files, startup, `SYSFREQ.H/C`, and `MEM_DATA` settings.
-- Verify SFR headers, register naming, interrupt syntax, and vector handler names.
-- Verify Ethernet NET library, PHY address, board reset pins, and network stack task requirements.
-- Verify CH563-only USB, GPIO PD, UCOS, parallel bus, and power examples before generating templates.
-- Verify Data-Flash write/erase rules and IAP/ISP flows.
+- 验证 EVT 根目录、Keil 工程、分散加载文件、启动代码、`SYSFREQ.H/C` 和 `MEM_DATA` 设置。
+- 验证 SFR 头文件、寄存器命名、中断语法和向量处理程序名称。
+- 验证以太网 NET 库、PHY 地址、开发板复位引脚和网络栈任务要求。
+- 生成模板前验证 CH563 专有的 USB、GPIO PD、UCOS、并行总线和电源示例。
+- 验证 Data-Flash 写入/擦除规则和 IAP/ISP 流程。
 
-## Verification Status
+## 验证状态
 
-- Extracted from `Doc/Ref/wch-dev-skill` Markdown sources and repository topic notes listed above.
-- Not fully verified against CH561/CH563 EVT trees, RM, DS, Keil project files, startup files, scatter files, packages, or board schematics in this pass.
-- Treat memory maps, NET library details, and CH563-only feature availability as preliminary until checked against exact official material.
+- 根据 `Doc/Ref/wch-dev-skill` Markdown 源和上述仓库主题说明提取。
+- 本轮尚未针对 CH561/CH563 EVT 树、RM、DS、Keil 工程文件、启动代码文件、分散加载文件、封装或开发板原理图进行完整验证。
+- 在根据确切官方资料完成核查前，应将内存映射、NET 库细节和 CH563 专有功能可用性视为初步信息。

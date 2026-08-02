@@ -1,27 +1,27 @@
-# wch-dev-skill Markdown Source Index
+# wch-dev-skill Markdown 源文件索引
 
-This index tracks the Markdown files under `Doc/Ref/wch-dev-skill` that should be progressively extracted into repository-specific documentation.
+本索引跟踪 `Doc/Ref/wch-dev-skill` 下应逐步提取到仓库专用文档中的 Markdown 文件。
 
-Scope for this index:
+本索引的覆盖范围：
 
-- Included: top-level skill docs, `chips/*/recipes/*.md`, and `chips/*/resources/*.md`.
-- Excluded for the first pass: `chips/*/resources/EXAM/**/*.md`, because those files mostly belong to copied examples or third-party packages and should be reviewed separately only when the related example is migrated.
+- 包含：顶层技能文档、`chips/*/recipes/*.md` 和 `chips/*/resources/*.md`。
+- 首轮不包含：`chips/*/resources/EXAM/**/*.md`，因为这些文件大多属于复制的示例或第三方软件包，仅应在迁移相关示例时单独审查。
 
-## Top-Level Skill Docs
+## 顶层技能文档
 
-| Source | Purpose | Initial target |
+| 源文件 | 用途 | 初始目标位置 |
 |---|---|---|
-| `Doc/Ref/wch-dev-skill/SKILL.md` | Global routing, rules, workflows, scenarios, pitfalls | `Doc/Family/`, `Doc/HAL/`, topic docs |
-| `Doc/Ref/wch-dev-skill/AGENTS.md` | Coding conventions, include patterns, main loop templates, checklists | `Doc/Core/`, `Doc/HAL/`, topic docs |
-| `Doc/Ref/wch-dev-skill/README.md` | Chinese overview and installation notes | Reference only |
-| `Doc/Ref/wch-dev-skill/README_EN.md` | English overview and installation notes | Reference only |
-| `Doc/Ref/wch-dev-skill/CHANGELOG.md` | Upstream skill history | Reference only |
+| `Doc/Ref/wch-dev-skill/SKILL.md` | 全局路由、规则、工作流、场景和陷阱 | `Doc/Family/`、`Doc/HAL/`、主题文档 |
+| `Doc/Ref/wch-dev-skill/AGENTS.md` | 编码约定、头文件包含模式、主循环模板和检查清单 | `Doc/Core/`、`Doc/HAL/`、主题文档 |
+| `Doc/Ref/wch-dev-skill/README.md` | 中文概述和安装说明 | 仅供参考 |
+| `Doc/Ref/wch-dev-skill/README_EN.md` | 英文概述和安装说明 | 仅供参考 |
+| `Doc/Ref/wch-dev-skill/CHANGELOG.md` | 上游技能变更历史 | 仅供参考 |
 
-## Family Resource Docs
+## 芯片系列资源文档
 
-These files usually contain the highest-value compact reference material for extraction.
+这些文件通常包含最具提取价值的精炼参考资料。
 
-| Family | Resource docs | Primary target |
+| 芯片系列 | 资源文档 | 主要目标位置 |
 |---|---|---|
 | `ch57x` | `pitfalls.md`, `peripheral_api.md`, `memory_layout.md`, `hal_reference.md`, `example_list.md`, `config_reference.md`, `ble_api.md` | `Doc/BLE/`, `Doc/Core/`, `Doc/Family/` |
 | `ch58x-ch59x` | `pitfalls.md`, `peripheral_api.md`, `memory_layout.md`, `example_list.md`, `config_reference.md` | `Doc/BLE/`, `Doc/USB/`, `Doc/Family/` |
@@ -34,23 +34,23 @@ These files usually contain the highest-value compact reference material for ext
 | `ch32h-highperf` | `pitfalls.md`, `peripheral_api.md`, `memory_layout.md`, `example_list.md` | `Doc/HAL/`, `Doc/USB/`, `Doc/ETH/`, `Doc/Core/`, `Doc/Family/` |
 | `ch5xx-8051` | `pitfalls.md`, `peripheral_api.md`, `memory_layout.md`, `example_list.md` | `Doc/Core/`, `Doc/USB/`, `Doc/Family/` |
 
-## Recipe Groups By Target Topic
+## 按目标主题划分的操作指南组
 
-### Project And Family Setup
+### 项目和芯片系列设置
 
-Sources:
+源文件：
 
 - `chips/*/recipes/new_project.md`
 
-Targets:
+目标位置：
 
 - `Doc/Family/`
 - `Doc/Core/`
 - `Doc/Templates/`
 
-### Common HAL Peripherals
+### 通用 HAL 外设
 
-Sources:
+源文件：
 
 - `chips/*/recipes/gpio_control.md`
 - `chips/*/recipes/uart_comm.md`
@@ -66,15 +66,15 @@ Sources:
 - `chips/*/recipes/rtc_config.md`
 - `chips/*/recipes/rtc_clock.md`
 
-Targets:
+目标位置：
 
 - `Doc/HAL/`
 - `Doc/Core/`
 - `Doc/Family/`
 
-### BLE And 2.4 GHz RF
+### BLE 和 2.4 GHz RF
 
-Sources:
+源文件：
 
 - `chips/ch57x/recipes/ble_*.md`
 - `chips/ch57x/recipes/rf_comm.md`
@@ -83,15 +83,15 @@ Sources:
 - `chips/ch57x/resources/config_reference.md`
 - `chips/ch58x-ch59x/resources/config_reference.md`
 
-Targets:
+目标位置：
 
 - `Doc/BLE/`
 - `Doc/Core/`
 - `Doc/Family/`
 
-### USB And USB3
+### USB 和 USB3
 
-Sources:
+源文件：
 
 - `chips/*/recipes/usb_device.md`
 - `chips/*/recipes/usb_host.md`
@@ -100,15 +100,15 @@ Sources:
 - `chips/ch32h-highperf/recipes/usbhs_device.md`
 - `chips/ch32h-highperf/recipes/usbfs_device.md`
 
-Targets:
+目标位置：
 
 - `Doc/USB/`
 - `Doc/Core/`
 - `Doc/Family/`
 
-### USB-PD, Type-C, And PIOC
+### USB-PD、Type-C 和 PIOC
 
-Sources:
+源文件：
 
 - `chips/ch32x-usbpd/recipes/usbpd_config.md`
 - `chips/ch32x-usbpd/recipes/pio_config.md`
@@ -116,15 +116,15 @@ Sources:
 - `chips/ch32h-highperf/recipes/usbpd_config.md`
 - `chips/ch5xx-8051/recipes/type_c.md`
 
-Targets:
+目标位置：
 
 - `Doc/USBPD/`
 - `Doc/USB/`
 - `Doc/HAL/`
 
-### Ethernet And High-Speed Interfaces
+### 以太网和高速接口
 
-Sources:
+源文件：
 
 - `chips/*/recipes/eth_comm.md`
 - `chips/ch32f-arm/recipes/ethernet.md`
@@ -136,30 +136,30 @@ Sources:
 - `chips/ch561-ch563/recipes/ecdc_crypto.md`
 - `chips/ch32h-highperf/recipes/ecdc_crypto.md`
 
-Targets:
+目标位置：
 
 - `Doc/ETH/`
 - `Doc/Security/`
 - `Doc/HAL/`
 - `Doc/Core/`
 
-### Security, Crypto, CRC, And RNG
+### 安全、密码学、CRC 和 RNG
 
-Sources:
+源文件：
 
 - `chips/*/recipes/ecdc_crypto.md`
 - `chips/*/recipes/crc_calculation.md`
 - `chips/*/recipes/rng_random.md`
 
-Targets:
+目标位置：
 
 - `Doc/Security/`
 - `Doc/System/`
 - `Doc/IAP/`
 
-### Storage Interfaces
+### 存储接口
 
-Sources:
+源文件：
 
 - `chips/*/recipes/sdio_sdcard.md`
 - `chips/ch56x-ethernet/recipes/sd_card.md`
@@ -167,30 +167,30 @@ Sources:
 - `chips/*/recipes/hspi_comm.md`
 - `chips/ch32h-highperf/recipes/qspi_flash.md`
 
-Targets:
+目标位置：
 
 - `Doc/Storage/`
 - `Doc/HAL/`
 - `Doc/Family/`
 
-### IO, Audio, CAN, And Camera Interfaces
+### IO、音频、CAN 和摄像头接口
 
-Sources:
+源文件：
 
 - `chips/*/recipes/can_comm.md`
 - `chips/*/recipes/i2s_audio.md`
 - `chips/*/recipes/sai_audio.md`
 - `chips/*/recipes/dvp_camera.md`
 
-Targets:
+目标位置：
 
 - `Doc/IO/`
 - `Doc/HAL/`
 - `Doc/Family/`
 
-### System, Analog, Power, And Utility Peripherals
+### 系统、模拟、电源和实用外设
 
-Sources:
+源文件：
 
 - `chips/*/recipes/power_management.md`
 - `chips/*/recipes/lowpower.md`
@@ -204,15 +204,15 @@ Sources:
 - `chips/*/recipes/rng_random.md`
 - `chips/*/recipes/crc_calculation.md`
 
-Targets:
+目标位置：
 
 - `Doc/System/`
 - `Doc/HAL/`
 - `Doc/Core/`
 
-### Display, HMI, And Specialty Peripherals
+### 显示、HMI 和专用外设
 
-Sources:
+源文件：
 
 - `chips/*/recipes/fsmc_lcd.md`
 - `chips/*/recipes/lcd_display.md`
@@ -227,61 +227,61 @@ Sources:
 - `chips/ch56x-ethernet/recipes/pwmx_output.md`
 - `chips/ch56x-ethernet/recipes/bus8_interface.md`
 
-Targets:
+目标位置：
 
 - `Doc/HMI/`
 - `Doc/HAL/`
 - `Doc/Family/`
 
-### IAP, OTA, Bootloader, And Flash Layout
+### IAP、OTA、引导加载程序和闪存布局
 
-Sources:
+源文件：
 
 - `chips/*/recipes/iap_ota.md`
 - `chips/ch5xx-8051/recipes/iap_bootloader.md`
 - `chips/*/resources/memory_layout.md`
 
-Targets:
+目标位置：
 
 - `Doc/IAP/`
 - `Doc/Core/`
 - `Doc/Family/`
 
-### RTOS Integration
+### RTOS 集成
 
-Sources:
+源文件：
 
 - `chips/*/resources/example_list.md`
 - `chips/*/resources/pitfalls.md`
-- BLE/TMOS-related recipes and references under `chips/ch57x/` and `chips/ch58x-ch59x/`
+- `chips/ch57x/` 和 `chips/ch58x-ch59x/` 下与 BLE/TMOS 相关的操作指南和参考资料
 
-Targets:
+目标位置：
 
 - `Doc/RTOS/`
 - `Doc/BLE/`
 - `Doc/Core/`
 
-## First-Pass Extraction Order
+## 首轮提取顺序
 
-1. `Doc/Family/family-routing.md`: global family routing and source directory mapping. Done.
-2. `Doc/Family/family-normalization-notes.md`: family-level normalization entry point and future per-family note template. Done for first Markdown extraction pass; per-family EVT/RM/DS verification remains.
-3. `Doc/Family/ch32v-general-notes.md`, `Doc/Family/ch58x-ch59x-notes.md`, `Doc/Family/ch56x-ethernet-notes.md`: first per-family extraction notes. Done for first Markdown extraction pass; exact EVT/RM/DS verification remains.
-4. `Doc/Family/ch57x-notes.md`, `Doc/Family/ch32x-usbpd-notes.md`, `Doc/Family/ch32h-highperf-notes.md`: second per-family extraction notes. Done for first Markdown extraction pass; exact EVT/RM/DS verification remains.
-5. `Doc/Family/ch32f-arm-notes.md`, `Doc/Family/ch32v-lowcost-notes.md`, `Doc/Family/ch561-ch563-notes.md`, `Doc/Family/ch5xx-8051-notes.md`: remaining per-family extraction notes. Done for first Markdown extraction pass; exact EVT/RM/DS/toolchain verification remains.
-6. `Doc/Templates/wch-project-template-notes.md`: new-project, toolchain, linker, startup, and minimal main-loop notes. Done for first Markdown extraction pass; EVT project-file verification remains.
-7. `Doc/Security/wch-security-crypto-notes.md`: ECDC, CRC, RNG, and security-boundary notes. Done for first Markdown extraction pass; EVT, test-vector, and security review verification remains.
-8. `Doc/BLE/wch-ble-notes.md`: CH57x and CH58x/CH59x BLE rules, config, and examples. Done for first Markdown extraction pass; EVT verification remains.
-9. `Doc/Core/wch-core-notes.md`: memory layout, interrupt attributes, startup/linker rules. Done for first Markdown extraction pass; EVT linker/startup verification remains.
-10. `Doc/HAL/wch-hal-normalization.md`: common peripheral normalization notes. Done for first Markdown extraction pass; EVT API verification remains.
-11. `Doc/ETH/wch-ethernet-notes.md`: Ethernet MAC/PHY/DMA/WCHNET notes. Done for first Markdown extraction pass; EVT and board-level verification remains.
-12. `Doc/USB/`, `Doc/USBPD/`, `Doc/IAP/`, `Doc/RTOS/`: specialized topic extraction docs. Done for first Markdown extraction pass; EVT and integration verification remains.
-13. `Doc/HMI/wch-hmi-specialty-notes.md`: display, HMI, and specialty peripheral notes. Done for first Markdown extraction pass; board-level and peripheral-specific verification remains.
-14. `Doc/IO/wch-io-media-notes.md`: CAN, I2S, SAI, and DVP camera interface notes. Done for first Markdown extraction pass; EVT, board, and external component verification remains.
-15. `Doc/Storage/wch-storage-notes.md`: SD/SDIO/eMMC/HSPI/QSPI storage interface notes. Done for first Markdown extraction pass; EVT, board, and device verification remains.
-16. `Doc/System/wch-system-analog-power-notes.md`: low-power, RTC, watchdog, analog, CRC/RNG, and utility peripheral notes. Done for first Markdown extraction pass; EVT, board, analog, and measurement verification remains.
+1. `Doc/Family/family-routing.md`：全局芯片系列路由和源目录映射。已完成。
+2. `Doc/Family/family-normalization-notes.md`：芯片系列级规范化入口和未来各芯片系列说明模板。首轮 Markdown 提取已完成；各芯片系列的 EVT/RM/DS 验证仍待进行。
+3. `Doc/Family/ch32v-general-notes.md`、`Doc/Family/ch58x-ch59x-notes.md`、`Doc/Family/ch56x-ethernet-notes.md`：首批各芯片系列提取说明。首轮 Markdown 提取已完成；准确的 EVT/RM/DS 验证仍待进行。
+4. `Doc/Family/ch57x-notes.md`、`Doc/Family/ch32x-usbpd-notes.md`、`Doc/Family/ch32h-highperf-notes.md`：第二批各芯片系列提取说明。首轮 Markdown 提取已完成；准确的 EVT/RM/DS 验证仍待进行。
+5. `Doc/Family/ch32f-arm-notes.md`、`Doc/Family/ch32v-lowcost-notes.md`、`Doc/Family/ch561-ch563-notes.md`、`Doc/Family/ch5xx-8051-notes.md`：其余各芯片系列提取说明。首轮 Markdown 提取已完成；准确的 EVT/RM/DS/工具链验证仍待进行。
+6. `Doc/Templates/wch-project-template-notes.md`：新建项目、工具链、链接器、启动和最小主循环说明。首轮 Markdown 提取已完成；EVT 项目文件验证仍待进行。
+7. `Doc/Security/wch-security-crypto-notes.md`：ECDC、CRC、RNG 和安全边界说明。首轮 Markdown 提取已完成；EVT、测试向量和安全审查验证仍待进行。
+8. `Doc/BLE/wch-ble-notes.md`：CH57x 和 CH58x/CH59x 的 BLE 规则、配置和示例。首轮 Markdown 提取已完成；EVT 验证仍待进行。
+9. `Doc/Core/wch-core-notes.md`：内存布局、中断属性和启动/链接器规则。首轮 Markdown 提取已完成；EVT 链接器/启动验证仍待进行。
+10. `Doc/HAL/wch-hal-normalization.md`：通用外设规范化说明。首轮 Markdown 提取已完成；EVT API 验证仍待进行。
+11. `Doc/ETH/wch-ethernet-notes.md`：以太网 MAC/PHY/DMA/WCHNET 说明。首轮 Markdown 提取已完成；EVT 和板级验证仍待进行。
+12. `Doc/USB/`、`Doc/USBPD/`、`Doc/IAP/`、`Doc/RTOS/`：专用主题提取文档。首轮 Markdown 提取已完成；EVT 和集成验证仍待进行。
+13. `Doc/HMI/wch-hmi-specialty-notes.md`：显示、HMI 和专用外设说明。首轮 Markdown 提取已完成；板级和特定外设验证仍待进行。
+14. `Doc/IO/wch-io-media-notes.md`：CAN、I2S、SAI 和 DVP 摄像头接口说明。首轮 Markdown 提取已完成；EVT、板级和外部组件验证仍待进行。
+15. `Doc/Storage/wch-storage-notes.md`：SD/SDIO/eMMC/HSPI/QSPI 存储接口说明。首轮 Markdown 提取已完成；EVT、板级和设备验证仍待进行。
+16. `Doc/System/wch-system-analog-power-notes.md`：低功耗、RTC、看门狗、模拟、CRC/RNG 和实用外设说明。首轮 Markdown 提取已完成；EVT、板级、模拟和测量验证仍待进行。
 
-## Notes
+## 说明
 
-- Keep this index focused on extraction planning. Detailed conclusions belong in target topic documents.
-- When a source recipe contains API names, verify them against repository EVT headers before treating them as HAL facts.
-- Add new target documents to this index as extraction progresses.
+- 本索引应专注于提取规划。详细结论应放入目标主题文档。
+- 当源操作指南包含 API 名称时，应先对照仓库中的 EVT 头文件进行验证，再将其作为 HAL 事实。
+- 随着提取工作的推进，将新的目标文档添加到本索引中。

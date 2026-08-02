@@ -1,39 +1,40 @@
-# WCH Chip Family Routing
+# WCH 芯片系列路由
 
-This document is the repository-specific entry point for routing WCH chips to their source references, EVT directories, and future HAL family notes.
+本文档是本仓库将 WCH 芯片路由到其源参考资料、EVT 目录及未来 HAL 系列说明的入口。
 
-## Source Files
+## 源文件
 
 - `Doc/Ref/wch-dev-skill/SKILL.md`
 - `Doc/Ref/wch-dev-skill/AGENTS.md`
-- Repository EVT directories at the workspace root
-- Official references under `Doc/DS/` and `Doc/RM/`
+- 工作区根目录下的仓库 EVT 目录
+- `Doc/DS/` 和 `Doc/RM/` 下的官方参考资料
 
-## Routing Table
+## 路由表
 
-| Chip or family | Skill source family | Repository EVT/source directories | Architecture | Primary focus |
+| 芯片或系列 | Skill 来源系列 | 仓库 EVT/源目录 | 架构 | 主要关注点 |
 |---|---|---|---|---|
-| CH57x, CH572, CH573, CH579 | `Doc/Ref/wch-dev-skill/chips/ch57x/` | `CH572EVT/`, `CH573EVT/` | RISC-V | BLE 5.x, RF, USB, LCD/NET variants |
-| CH58x, CH59x, CH583, CH585, CH592, CH595 | `Doc/Ref/wch-dev-skill/chips/ch58x-ch59x/` | `CH583EVT/`, `CH585EVT/`, `CH592EVT/`, `CH595EVT/` | RISC-V | BLE, USB, LCD, NFCA, encoder/keyscan variants |
-| CH32V103, CH32V20x, CH32V307, CH32V407 | `Doc/Ref/wch-dev-skill/chips/ch32v-general/` | `CH32V103EVT/`, `CH32V20xEVT/`, `CH32V307EVT/`, `CH32V407EVT/` | RISC-V | StdPeriphDriver, USB, ETH, CAN, FSMC/LTDC, high-speed variants |
-| CH32V003, CH32V006, CH32L103 | `Doc/Ref/wch-dev-skill/chips/ch32v-lowcost/` | Low-cost material in `Doc/DS/`, `Doc/RM/`, and related EVT sources | RISC-V | Small-resource HAL subset, OPA/CMP, low-cost Flash/RAM constraints |
-| CH32F103, CH32F20x, CH32M030 | `Doc/Ref/wch-dev-skill/chips/ch32f-arm/` | `CH32M030EVT/` plus related official docs | ARM Cortex-M3 | ARM StdPeriphDriver compatibility, USB, Ethernet, USB-PD references |
-| CH32X035, CH32X315, CH641, CH643 | `Doc/Ref/wch-dev-skill/chips/ch32x-usbpd/` | `CH32X035EVT/`, `CH32X315EVT/` | RISC-V | USB-PD, PIOC, USB, touch/key peripheral variants |
-| CH569 | `Doc/Ref/wch-dev-skill/chips/ch56x-ethernet/` | `CH569EVT/` | RISC-V | Ethernet, USB3, eMMC, ECDC, HSPI, DVP |
-| CH32H417 | `Doc/Ref/wch-dev-skill/chips/ch32h-highperf/` | High-performance references in `Doc/DS/`, `Doc/RM/`, and future EVT imports | RISC-V | USB3, USB-PD, LTDC, SerDes, high-performance peripherals |
-| CH561, CH563 | `Doc/Ref/wch-dev-skill/chips/ch561-ch563/` | Official docs and any imported CH561/CH563 EVT material | ARM7TDMI | Register-level Ethernet/USB HS, ARM7-specific startup and interrupts |
-| CH543 through CH559 | `Doc/Ref/wch-dev-skill/chips/ch5xx-8051/` | CH5xx-related official docs and any imported EVT material | 8051 | USB, TouchKey, Type-C, 8051 memory qualifiers and safe mode |
+| CH57x, CH572, CH573, CH579 | `Doc/Ref/wch-dev-skill/chips/ch57x/` | `CH572EVT/`, `CH573EVT/` | RISC-V | BLE 5.x、RF、USB、LCD/NET 变体 |
+| CH58x, CH59x, CH583, CH585, CH592, CH595 | `Doc/Ref/wch-dev-skill/chips/ch58x-ch59x/` | `CH583EVT/`, `CH585EVT/`, `CH592EVT/`, `CH595EVT/` | RISC-V | BLE、USB、LCD、NFCA、编码器/键盘扫描变体 |
+| CH32V103, CH32V20x, CH32V307, CH32V407 | `Doc/Ref/wch-dev-skill/chips/ch32v-general/` | `CH32V103EVT/`, `CH32V20xEVT/`, `CH32V307EVT/`, `CH32V407EVT/` | RISC-V | StdPeriphDriver、USB、ETH；CAN 与高速外设按子系列验证 |
+| CH32V003, CH32V006, CH32L103 | `Doc/Ref/wch-dev-skill/chips/ch32v-lowcost/` | `Doc/DS/`、`Doc/RM/` 和相关 EVT 源中的低成本资料 | RISC-V | 小资源 HAL 子集、OPA/CMP、低成本 Flash/RAM 约束 |
+| CH32M030 | 当前 `CH32M030EVT/`（可独立路由或并入低资源 StdPeriph 组） | `CH32M030EVT/` | QingKe RISC-V V3B | `ch32m030.h`、64 KB Flash/12 KB RAM、电机控制、USB-PD |
+| CH32F103, CH32F20x | `Doc/Ref/wch-dev-skill/chips/ch32f-arm/` | 当前 SDK 未导入对应 EVT，来源未验证 | ARM Cortex-M3 | 仅作来源路由；导入官方 SDK 后再确认功能、内存和工程结构 |
+| CH32X035, CH32X315, CH641, CH643 | `Doc/Ref/wch-dev-skill/chips/ch32x-usbpd/` | `CH32X035EVT/`, `CH32X315EVT/` | RISC-V | USB-PD、PIOC、USB、触摸/按键外设变体 |
+| CH569 | `Doc/Ref/wch-dev-skill/chips/ch56x-ethernet/` | `CH569EVT/` | RISC-V | 以太网、USB3、eMMC、ECDC、HSPI、DVP |
+| CH32H415/416/417 | `Doc/Ref/wch-dev-skill/chips/ch32h-highperf/` | `CH32H47TEVT/` | RISC-V V3F/V5F | 共享 `ch32h417.h` 与启动文件、IPC/HSEM、双 SysTick、内核专用链接布局 |
+| CH561, CH563 | `Doc/Ref/wch-dev-skill/chips/ch561-ch563/` | 当前 SDK 未导入对应 EVT，来源未验证 | ARM7TDMI | 仅作来源路由；寄存器级和工程结论需待官方 SDK 验证 |
+| CH543 至 CH559 | `Doc/Ref/wch-dev-skill/chips/ch5xx-8051/` | CH5xx 相关官方文档及任何已导入的 EVT 资料 | 8051 | USB、TouchKey、Type-C、8051 内存限定符和安全模式 |
 
-## Repository Rules
+## 仓库规则
 
-- Use this table only for routing and source discovery.
-- Treat official `Doc/DS/`, `Doc/RM/`, and EVT source code as the final authority.
-- Treat `Doc/Ref/wch-dev-skill` as extraction input, not as final HAL specification.
-- Do not mix headers, startup files, linker scripts, or interrupt attributes across routed families.
+- 此表仅用于路由和源发现。
+- 以官方 `Doc/DS/`、`Doc/RM/` 和 EVT 源代码为最终依据。
+- 将 `Doc/Ref/wch-dev-skill` 视为提取输入，而非最终 HAL 规范。
+- 不要混用不同路由系列的头文件、启动代码文件、链接脚本或中断属性。
 
-## Extraction Targets
+## 提取目标
 
-| Family | First extraction target | Later targets |
+| 系列 | 首个提取目标 | 后续目标 |
 |---|---|---|
 | `ch57x` | `Doc/BLE/` | `Doc/Core/`, `Doc/USB/`, `Doc/HAL/` |
 | `ch58x-ch59x` | `Doc/BLE/` | `Doc/USB/`, `Doc/HAL/`, `Doc/Family/` |
@@ -46,14 +47,14 @@ This document is the repository-specific entry point for routing WCH chips to th
 | `ch561-ch563` | `Doc/ETH/` | `Doc/Core/`, `Doc/Family/` |
 | `ch5xx-8051` | `Doc/Core/` | `Doc/USB/`, `Doc/Family/` |
 
-## Open Follow-Ups
+## 待处理事项
 
-- Verify exact EVT coverage for CH32V003, CH32V006, CH32L103, CH32F103, CH32F20x, CH561, CH563, and CH5xx in this repository.
-- Create per-family notes only when a family is actively normalized.
-- Cross-link this document from future topic documents when they extract family-specific behavior.
+- 验证本仓库对 CH32V003、CH32V006、CH32L103、CH32F103、CH32F20x、CH561、CH563 和 CH5xx 的确切 EVT 覆盖范围；当前未导入者不得写成已验证支持。
+- 仅在主动归一化某个系列时创建该系列的说明。
+- 未来主题文档提取系列特定行为时，应交叉链接本文档。
 
-## Verification Status
+## 验证状态
 
-- Extracted from `Doc/Ref/wch-dev-skill` top-level routing documents plus repository directory layout.
-- Not fully verified against every EVT tree, RM, DS, package variant, or chip-specific startup/linker file in this pass.
-- Treat this document as a routing index. Exact chip capabilities, package availability, register details, and example coverage must be checked against official EVT, RM, DS, and board material before implementation.
+- 根据 `Doc/Ref/wch-dev-skill` 顶层路由文档和仓库目录布局提取。
+- 本轮尚未针对每个 EVT 树、RM、DS、封装变体或芯片专用启动代码/链接文件进行完整验证。
+- 将本文档视为路由索引。实现前必须根据官方 EVT、RM、DS 和开发板资料核查确切的芯片能力、封装可用性、寄存器细节和示例覆盖范围。

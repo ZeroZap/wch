@@ -1,17 +1,17 @@
-# WCH USB-PD, Type-C, And PIOC Notes
+# WCH USB-PD、Type-C 与 PIOC 笔记
 
-This document extracts USB-PD, USB Type-C CC detection, and PIOC guidance from `Doc/Ref/wch-dev-skill` into repository-specific rules for future HAL, driver, template, and metadata work.
+本文从 `Doc/Ref/wch-dev-skill` 提取 USB-PD、USB Type-C CC 检测及 PIOC 相关指导，整理为适用于本仓库的规则，供后续 HAL、驱动、模板及元数据工作使用。
 
-Scope:
+范围：
 
-- USB-PD source, sink, and DRP-style flows on CH32X/CH64x, CH32M030, and CH32H417-class sources.
-- USB Type-C attach, orientation, Rp/Rd, and current advertisement/detection notes from CH5xx sources.
-- PIOC bring-up and usage rules for programmable I/O examples on CH32X035/CH643-class sources.
-- Common CC, comparator, PHY voltage, BMC timing, message, interrupt, and pin-remap pitfalls.
+- CH32X/CH64x、CH32M030 及 CH32H417 系列来源中的 USB-PD 供电端、受电端和 DRP 流程。
+- CH5xx 来源中的 USB Type-C 连接、方向、Rp/Rd 及电流通告/检测笔记。
+- CH32X035/CH643 系列来源中可编程 I/O 示例的 PIOC 启动及使用规则。
+- CC、比较器、PHY 电压、BMC 时序、消息、中断及引脚重映射的常见陷阱。
 
-Official EVT examples, RM, DS, schematics, USB-PD specifications, Type-C specifications, and current repository source remain the final authority.
+最终应以官方 EVT 示例、RM、DS、原理图、USB-PD 规范、Type-C 规范及当前仓库源码为准。
 
-## Source Files
+## 来源文件
 
 - `Doc/Ref/wch-dev-skill/chips/ch32x-usbpd/recipes/usbpd_config.md`
 - `Doc/Ref/wch-dev-skill/chips/ch32x-usbpd/recipes/pio_config.md`
@@ -24,194 +24,197 @@ Official EVT examples, RM, DS, schematics, USB-PD specifications, Type-C specifi
 - `Doc/Ref/wch-dev-skill/chips/ch5xx-8051/recipes/type_c.md`
 - `Doc/Ref/wch-dev-skill/chips/ch5xx-8051/resources/example_list.md`
 
-## Family Coverage
+## 系列覆盖范围
 
-| Family or source group | USB-PD / Type-C support from source notes | Software style | Rules to preserve |
+| 系列或来源组 | 来源笔记中的 USB-PD / Type-C 支持 | 软件风格 | 必须保留的规则 |
 |---|---|---|---|
-| CH32X035, CH32X315, CH641, CH643 | USB-PD examples for source, sink, DRP/state-machine flows; PIOC examples on CH32X035/CH643-class sources | StdPeriph plus USBPD registers; PIOC SFR/microcode | Enable correct USBPD clock domain, configure CC comparators, select active CC line, match BMC timers to clock, and treat PIOC as a separate programmable engine. |
-| CH32M030 | Built-in USBPD peripheral; USBPD0/USBPD1 availability varies by package | `PD_Process` example module | Select `PD_SEL` correctly, account for external 5.1K Rd requirements in sink mode, keep 1 ms PD timing, and monitor VBUS. |
-| CH32H417 | Integrated USBPD controller with PD 3.0-oriented source notes | StdPeriph-like USBPD registers | Enable the right bus clock, configure `CONFIG`, `CONTROL`, `PORT_CC1`, `PORT_CC2`, and use `USBPD_PHY_V33` according to VDD. |
-| CH543-CH559 Type-C sources | Type-C attach, orientation, and current detection through `USB_C_CTRL` and ADC on UCC pins | 8051 SFR/register-level | DFP advertises current with Rp; UFP enables Rd and measures Rp voltage; UCC pins must be floating inputs before ADC reads. |
+| CH32X035、CH32X315、CH641、CH643 | 供电端、受电端、DRP/状态机流程的 USB-PD 示例；CH32X035/CH643 系列来源中的 PIOC 示例 | StdPeriph 加 USBPD 寄存器；PIOC SFR/微码 | 使能正确的 USBPD 时钟域，配置 CC 比较器，选择有效 CC 线，使 BMC 定时器与时钟匹配，并将 PIOC 视为独立的可编程引擎。 |
+| CH32M030 | 内置 USBPD 外设；USBPD0/USBPD1 可用性因封装而异 | `PD_Process` 示例模块 | 正确选择 `PD_SEL`，考虑受电端模式所需的外部 5.1K Rd，维持 1 ms PD 时序并监测 VBUS。 |
+| CH32L103 | 当前 EVT 提供 `USBPD_SRC`、`USBPD_SNK` 和 `USBPD_CH211` | StdPeriph 加 `PD_Process`/CH211 示例 | 分别从 `CH32L103EVT/EXAM/USBPD/USBPD_SRC/`、`USBPD_SNK/`、`USBPD_CH211/` 起步，不把角色或外部 CH211 控制流程混为一套。 |
+| CH32H417 | 集成 USBPD 控制器，来源笔记面向 PD 3.0 | 类 StdPeriph USBPD 寄存器 | 使能正确的总线时钟，配置 `CONFIG`、`CONTROL`、`PORT_CC1`、`PORT_CC2`，并根据 VDD 使用 `USBPD_PHY_V33`。 |
+| CH543-CH559 Type-C 来源 | 通过 `USB_C_CTRL` 及 UCC 引脚上的 ADC 检测 Type-C 连接、方向和电流 | 8051 SFR/寄存器级 | DFP 通过 Rp 通告电流；UFP 使能 Rd 并测量 Rp 电压；ADC 读取前 UCC 引脚必须为浮空输入。 |
 
-## Concept Boundaries
+## 概念边界
 
-Keep USB, Type-C, USB-PD, and PIOC separate in HAL metadata.
+在 HAL 元数据中将 USB、Type-C、USB-PD 和 PIOC 分开。
 
-| Concept | Purpose | Do not conflate with |
+| 概念 | 用途 | 不得混同于 |
 |---|---|---|
-| USB D+/D- controller | USB data enumeration and class traffic | USB-PD CC BMC communication. |
-| Type-C CC detection | Attach, cable orientation, advertised default/1.5A/3.0A current | Full USB-PD message negotiation. |
-| USB-PD controller | BMC signaling, GoodCRC, PDO/RDO negotiation, reset handling | USBFS endpoint or descriptor logic. |
-| PIOC | Programmable I/O engine for custom serial protocols | GPIO bit-banging executed by the main CPU. |
+| USB D+/D- 控制器 | USB 数据枚举及类通信 | USB-PD CC BMC 通信。 |
+| Type-C CC 检测 | 连接、线缆方向、通告默认/1.5A/3.0A 电流 | 完整的 USB-PD 消息协商。 |
+| USB-PD 控制器 | BMC 信令、GoodCRC、PDO/RDO 协商、复位处理 | USBFS 端点或描述符逻辑。 |
+| PIOC | 用于自定义串行协议的可编程 I/O 引擎 | 主 CPU 执行的 GPIO 位操作。 |
 
-Rules:
+规则：
 
-- USB-PD communicates over CC1/CC2, not D+/D-.
-- Type-C current advertisement through Rp/Rd is not the same as PD PDO negotiation.
-- USB-PD examples may coexist with USBFS examples, but their clocks, pins, interrupts, and state machines must remain independently modeled.
-- PIOC should be modeled as its own peripheral with code SRAM, SFR/data registers, IO mapping, and interrupt behavior.
+- USB-PD 通过 CC1/CC2 通信，而非 D+/D-。
+- 通过 Rp/Rd 进行的 Type-C 电流通告不同于 PD PDO 协商。
+- USB-PD 示例可与 USBFS 示例共存，但两者的时钟、引脚、中断及状态机必须独立建模。
+- PIOC 应作为独立外设建模，包括代码 SRAM、SFR/数据寄存器、IO 映射及中断行为。
 
-## Type-C CC Rules
+## Type-C CC 规则
 
-Type-C role decides the CC pull configuration.
+Type-C 角色决定 CC 上下拉配置。
 
-| Role | CC pull | Source-note behavior | HAL implication |
+| 角色 | CC 上下拉 | 来源笔记中的行为 | 对 HAL 的影响 |
 |---|---|---|---|
-| DFP / Source-facing host | Rp pull-up on both CC pins before attach | CH5xx uses `USB_C_CTRL` PU bits; CH32 USBPD sources use `CC_PU_*` values | Represent advertised current separately from power role. |
-| UFP / Sink-facing device | Rd pull-down on both CC pins before attach | CH5xx enables `bUCC1_PD_EN | bUCC2_PD_EN`; CH32M030 sink notes may require external 5.1K Rd | Metadata must record whether Rd is internal or external. |
-| DRP | Alternates source/sink behavior | CH32X source notes mention source, sink, and DRP flows | DRP needs explicit policy/state-machine support, not a static role flag. |
+| DFP / 面向供电端的主机 | 连接前在两个 CC 引脚上启用 Rp 上拉 | CH5xx 使用 `USB_C_CTRL` PU 位；CH32 USBPD 来源使用 `CC_PU_*` 值 | 将通告电流与电源角色分开表示。 |
+| UFP / 面向受电端的设备 | 连接前在两个 CC 引脚上启用 Rd 下拉 | CH5xx 使能 `bUCC1_PD_EN | bUCC2_PD_EN`；CH32M030 受电端笔记可能要求外部 5.1K Rd | 元数据必须记录 Rd 是内部还是外部。 |
+| DRP | 交替执行供电端/受电端行为 | CH32X 来源笔记提到供电端、受电端及 DRP 流程 | DRP 需要显式策略/状态机支持，而非静态角色标志。 |
 
-Orientation and attach rules:
+方向及连接规则：
 
-- Read both CC pins and select exactly one active communication line after attach.
-- Treat both-CC-connected or neither-CC-connected results as exceptional states requiring debounce, disconnect handling, or accessory-specific handling.
-- On 8051 Type-C examples, set UCC pins to floating input before ADC measurement; output mode causes incorrect or zero readings.
-- On CH32 USBPD examples, use `CC_SEL` to select CC1 or CC2 before BMC communication.
-- Verify board pin mapping for each instance; CH32M030 USBPD0 and USBPD1 use different CC pins and availability varies by package.
+- 读取两个 CC 引脚，并在连接后仅选择一条有效通信线。
+- 将两个 CC 均连接或均未连接的结果视为异常状态，需要消抖、断开处理或附件专用处理。
+- 在 8051 Type-C 示例中，ADC 测量前将 UCC 引脚设为浮空输入；输出模式会导致读数错误或为零。
+- 在 CH32 USBPD 示例中，BMC 通信前使用 `CC_SEL` 选择 CC1 或 CC2。
+- 验证各实例的开发板引脚映射；CH32M030 USBPD0 和 USBPD1 使用不同的 CC 引脚，且可用性因封装而异。
 
-## USB-PD Bring-Up Sequence
+## USB-PD 启动顺序
 
-Generic USB-PD initialization sequence:
+通用 USB-PD 初始化顺序：
 
-1. Configure system clock and update clock state used by delay/timer code.
-2. Enable the USBPD peripheral bus clock for the selected family and instance.
-3. Enable GPIO, AFIO, or remap clocks needed for CC pins or instance selection.
-4. Configure CC role pulls and comparator thresholds for both CC pins.
-5. Configure PHY voltage mode with `USBPD_PHY_V33` according to actual VDD.
-6. Configure BMC timing values for the current system clock.
-7. Enable PD input filtering and relevant RX/TX/reset interrupts.
-8. Detect attach and select the active CC channel.
-9. Start the PD state machine in the main loop or dedicated process function.
-10. Clear and service interrupt flags without doing heavy policy work in the ISR.
+1. 配置系统时钟，并更新延时/定时器代码使用的时钟状态。
+2. 为所选系列及实例使能 USBPD 外设总线时钟。
+3. 使能 CC 引脚或实例选择所需的 GPIO、AFIO 或重映射时钟。
+4. 为两个 CC 引脚配置角色上下拉及比较器阈值。
+5. 根据实际 VDD，使用 `USBPD_PHY_V33` 配置 PHY 电压模式。
+6. 根据当前系统时钟配置 BMC 时序值。
+7. 使能 PD 输入滤波及相关 RX/TX/复位中断。
+8. 检测连接并选择有效 CC 通道。
+9. 在主循环或专用处理函数中启动 PD 状态机。
+10. 清除并处理各中断标志，避免在 ISR 中执行繁重的策略工作。
 
-Family variations:
+系列差异：
 
-- CH32X source notes use `RCC_AHBPeriphClockCmd(RCC_AHBPeriph_USBPD, ENABLE)` and PC14/PC15 for CH32X035 CC pins.
-- CH32H417 source notes use `RCC_APB1PeriphClockCmd(RCC_APB1Periph_USBPD, ENABLE)` in the example.
-- CH32M030 source notes use the `PD_Process` module, `PD_SEL`, and a 1 ms TIM1 tick for PD timing.
-- USBPD1 on CH32M030 may require AFIO clock and `GPIO_Remap_SDI_Disable` according to the source recipe.
+- CH32X 来源笔记使用 `RCC_AHBPeriphClockCmd(RCC_AHBPeriph_USBPD, ENABLE)`，CH32X035 的 CC 引脚为 PC14/PC15。
+- CH32H417 当前 EVT 使用 `RCC_HBPeriphClockCmd(RCC_HBPeriph_USBPD, ENABLE)`，不得写成 APB1 时钟使能。
+- CH32M030 来源笔记使用 `PD_Process` 模块、`PD_SEL` 及 1 ms TIM1 节拍维持 PD 时序。
+- 根据来源方案，CH32M030 的 USBPD1 可能需要 AFIO 时钟及 `GPIO_Remap_SDI_Disable`。
 
-## CC Comparator And PHY Voltage Rules
+## CC 比较器与 PHY 电压规则
 
-CC comparator thresholds are required for BMC receive detection.
+BMC 接收检测需要配置 CC 比较器阈值。
 
-Rules:
+规则：
 
-- Do not configure only `CC_PD` or only `CC_PU_*`; pair role pull settings with a suitable comparator threshold.
-- Sink examples use pull-down plus a low comparator threshold such as `CC_CMP_22` or `CC_CMP_45` depending family recipe.
-- Source examples use pull-up current settings such as `CC_PU_330`, `CC_PU_180`, or `CC_PU_80` plus a comparator threshold such as `CC_CMP_66`.
-- Threshold names and exact supported values are header-specific; read the target chip USBPD header before generating constants.
+- 不得仅配置 `CC_PD` 或 `CC_PU_*`；角色上下拉设置必须配合合适的比较器阈值。
+- 受电端示例根据系列方案使用下拉以及 `CC_CMP_22` 或 `CC_CMP_45` 等低比较器阈值。
+- 供电端示例使用 `CC_PU_330`、`CC_PU_180` 或 `CC_PU_80` 等上拉电流设置，并配合 `CC_CMP_66` 等比较器阈值。
+- 阈值名称及确切支持值取决于头文件；生成常量前应阅读目标芯片的 USBPD 头文件。
 
-`USBPD_PHY_V33` must match board VDD:
+`USBPD_PHY_V33` 必须与开发板 VDD 匹配：
 
-- Set `USBPD_PHY_V33` only for 3.3 V VDD direct mode.
-- Clear `USBPD_PHY_V33` when VDD is greater than 4 V so the internal LDO limits the PHY voltage.
-- Treat this as a safety rule. A wrong setting can cause no communication or PHY damage.
+- 仅在 3.3 V VDD 直通模式下设置 `USBPD_PHY_V33`。
+- VDD 大于 4 V 时清除 `USBPD_PHY_V33`，由内部 LDO 限制 PHY 电压。
+- 此项属于安全规则。设置错误可能导致无法通信或损坏 PHY。
 
-## BMC Timing And Message Rules
+## BMC 时序与消息规则
 
-USB-PD protocol handling is timing-sensitive and stateful.
+USB-PD 协议处理对时序敏感且具有状态。
 
-BMC timing rules:
+BMC 时序规则：
 
-- BMC TX/RX timer values must be derived from the actual system clock.
-- Source notes list 48 MHz, 24 MHz, and 12 MHz timer presets; do not reuse 48 MHz values after changing the clock.
-- CH32M030 source notes maintain a 1 ms TIM1 tick and call detection/main PD processing from the main loop.
+- BMC TX/RX 定时器值必须根据实际系统时钟推导。
+- 来源笔记列出了 48 MHz、24 MHz 和 12 MHz 定时器预设；更改时钟后不得继续使用 48 MHz 对应值。
+- CH32M030 来源笔记维持 1 ms TIM1 节拍，并从主循环调用检测/PD 主处理。
 
-Message rules:
+消息规则：
 
-- Keep a real PD state machine for source, sink, DRP, reset, voltage-adjustment, and wait states.
-- Handle `GoodCRC` after messages; otherwise the partner can treat the message as lost.
-- Increment `Msg_ID` after each successful message sequence as required by the protocol.
-- Validate sink requests against available source PDOs before sending `Accept` and changing voltage.
-- Send `PS_RDY` only after the requested power supply state is actually ready.
-- Hard Reset is PHY-level BMC signaling and cannot be modeled as only a normal PD message.
-- PD 2.0/3.0 basic negotiation examples do not imply full PPS, AVS, or extended message support.
+- 为供电端、受电端、DRP、复位、电压调整及等待状态保留真正的 PD 状态机。
+- 消息后处理 `GoodCRC`，否则对端可能认为消息已丢失。
+- 按协议要求，在每个成功消息序列后递增 `Msg_ID`。
+- 发送 `Accept` 并改变电压前，根据可用供电端 PDO 验证受电端请求。
+- 仅在请求的电源状态实际就绪后发送 `PS_RDY`。
+- Hard Reset 是 PHY 级 BMC 信令，不能仅建模为普通 PD 消息。
+- PD 2.0/3.0 基本协商示例并不代表完整支持 PPS、AVS 或扩展消息。
 
-PDO/RDO rules:
+PDO/RDO 规则：
 
-- Fixed PDO voltage is encoded in 50 mV units and current in 10 mA units in the source recipe.
-- PPS/APDO fields use different units and bit positions; do not parse them as fixed supply PDOs.
-- Avoid hard-coding unsafe voltage requests. Source notes explicitly warn that incorrect requested voltage can damage connected devices.
-- Monitor VBUS for attach/removal and power-supply state, especially in sink examples.
+- 来源方案中，固定 PDO 电压以 50 mV 为单位编码，电流以 10 mA 为单位编码。
+- PPS/APDO 字段使用不同单位及位位置；不得按固定电源 PDO 解析。
+- 避免硬编码不安全的电压请求。来源笔记明确警告，请求错误电压可能损坏已连接器件。
+- 监测 VBUS 以判断连接/移除及电源状态，尤其是在受电端示例中。
 
-## Interrupt And State Handling
+## 中断与状态处理
 
-USBPD ISR rules:
+USBPD ISR 规则：
 
-- Read status once, handle only set flags, and clear each handled flag in the family-prescribed way.
-- Treat receive complete, transmit complete, reset, and buffer error flags separately.
-- Use `volatile` flags or a small event queue to defer policy/state-machine work out of the ISR.
-- Keep reset handling explicit; receiving `IF_RX_RESET` should move the PD state machine to a reset/recovery state.
+- 仅读取一次状态，仅处理已置位的标志，并按系列规定的方式清除每个已处理标志。
+- 分别处理接收完成、发送完成、复位及缓冲区错误标志。
+- 使用 `volatile` 标志或小型事件队列，将策略/状态机工作延后到 ISR 之外执行。
+- 明确处理复位；收到 `IF_RX_RESET` 时，应将 PD 状态机转入复位/恢复状态。
 
-Main-loop rules:
+主循环规则：
 
-- Call PD detection and PD main processing at the cadence expected by the EVT example.
-- Protect shared millisecond counters or deltas when updated by timer ISRs.
-- Keep power-stage control synchronized with PD policy state, not just message receipt.
+- 按 EVT 示例要求的频率调用 PD 检测及 PD 主处理。
+- 定时器 ISR 更新共享毫秒计数器或差值时，应予以保护。
+- 保持功率级控制与 PD 策略状态同步，而不能只依据收到的消息。
 
-## PIOC Rules
+## PIOC 规则
 
-PIOC is a small programmable I/O engine with its own code, SFR/data registers, IO pins, and interrupt request path.
+PIOC 是小型可编程 I/O 引擎，具有自己的代码、SFR/数据寄存器、IO 引脚及中断请求路径。
 
-Initialization sequence:
+初始化顺序：
 
-1. Enable GPIOC and AFIO clocks needed by the selected PIOC pins.
-2. Enable PIOC pin remap with `GPIO_PinRemapConfig(GPIO_Remap_PIOC, ENABLE)` when required.
-3. Disable conflicting SWJ/SDI remaps only when the selected board/pins need those pins.
-4. Configure TX pins as alternate-function push-pull and RX pins as input pull-up or the protocol-required mode.
-5. Enable and prioritize `PIOC_IRQn`.
-6. Load precompiled PIOC microcode into `PIOC_SRAM_BASE` with the required alignment.
-7. Reset/release PIOC and enable `RB_MST_IO_EN0`, `RB_MST_IO_EN1`, and `RB_MST_CLK_GATE` in the source-prescribed order.
-8. Configure protocol parameters in data registers before starting transfers through `R8_CTRL_WR`.
+1. 使能所选 PIOC 引脚需要的 GPIOC 和 AFIO 时钟。
+2. 需要时使用 `GPIO_PinRemapConfig(GPIO_Remap_PIOC, ENABLE)` 使能 PIOC 引脚重映射。
+3. 仅当所选开发板/引脚需要占用相关引脚时，才禁用冲突的 SWJ/SDI 重映射。
+4. 将 TX 引脚配置为复用推挽，将 RX 引脚配置为上拉输入或协议要求的模式。
+5. 使能 `PIOC_IRQn` 并设置其优先级。
+6. 按要求对齐，将预编译的 PIOC 微码加载到 `PIOC_SRAM_BASE`。
+7. 按来源规定的顺序复位/释放 PIOC，并使能 `RB_MST_IO_EN0`、`RB_MST_IO_EN1` 和 `RB_MST_CLK_GATE`。
+8. 通过 `R8_CTRL_WR` 启动传输前，先在数据寄存器中配置协议参数。
 
-PIOC design rules:
+PIOC 设计规则：
 
-- Treat PIOC microcode as protocol-specific firmware, not as ordinary C logic.
-- Keep baud-rate/timing register presets tied to the system clock; source UART presets assume 48 MHz.
-- Model data registers as the host/PIOC mailbox. Do not hide their buffer size constraints.
-- Keep double-buffered TX/RX ownership explicit when generating helpers.
-- Clear the PIOC interrupt request by writing `R8_CTRL_RD` as shown in the source recipe.
-- If PIOC does not run, check clock gate, reset release, microcode load, remap, and SWJ pin ownership before debugging protocol logic.
+- 将 PIOC 微码视为协议专用固件，而非普通 C 逻辑。
+- 波特率/时序寄存器预设应与系统时钟关联；来源中的 UART 预设假定 48 MHz。
+- 将数据寄存器建模为主机/PIOC 邮箱。不得隐藏其缓冲区大小限制。
+- 生成辅助函数时，明确双缓冲 TX/RX 的所有权。
+- 按来源方案所示，通过写入 `R8_CTRL_RD` 清除 PIOC 中断请求。
+- 若 PIOC 不运行，应先检查时钟门控、复位释放、微码加载、重映射及 SWJ 引脚所有权，再调试协议逻辑。
 
-PIOC memory/register notes from sources:
+来源中的 PIOC 内存/寄存器笔记：
 
-- `PIOC` appears at `0x40006800` on the CH32X035 memory-layout note.
-- `PIOC_SRAM_BASE` is used for microcode loading.
-- `R8_DATA_REG0` through `R8_DATA_REG31` are general data registers; some recipes use 32-bit aliases for timing configuration.
+- CH32X035 的 PIOC SFR 基地址 `PIOC_BASE` 为 `0x40026C00`。
+- `PIOC_SRAM_BASE` 是独立的代码 RAM 地址，当前头文件定义为 `SRAM_BASE + 0x4000`；不得把它与 PIOC SFR 基地址混用。
+- `R8_DATA_REG0` 至 `R8_DATA_REG31` 为通用数据寄存器；部分方案使用其 32 位别名配置时序。
 
-## Common Pitfalls
+## 常见陷阱
 
-| Pitfall | Consequence | Rule |
+| 陷阱 | 后果 | 规则 |
 |---|---|---|
-| Missing CC comparator threshold | PD messages cannot be decoded | Always pair CC pull configuration with comparator configuration. |
-| Wrong `USBPD_PHY_V33` for VDD | No communication or possible PHY damage | Set for 3.3 V direct mode; clear for VDD greater than 4 V. |
-| Reusing BMC timer constants after a clock change | Protocol errors | Derive timer values from the current system clock. |
-| Communicating on the wrong CC line | Attach detected but PD traffic fails | Detect orientation and update `CC_SEL`. |
-| Treating Type-C current advertisement as PD negotiation | Incorrect power policy | Separate Rp/Rd current levels from PDO/RDO negotiation. |
-| Missing external Rd on CH32M030 sink designs | Sink attach/negotiation failure | Add required 5.1K CC pull-downs when the chip/package lacks internal Rd. |
-| Not monitoring VBUS | Missed disconnect or unsafe power state | Include VBUS state in sink/source policy. |
-| Forgetting AFIO/remap clock | Pin remap has no effect | Enable AFIO before `GPIO_PinRemapConfig`. |
-| Leaving SWJ/SDI on PIOC pins | PIOC RX/TX pins do not work | Disable only the conflicting debug/remap function needed by the pinout. |
-| Loading PIOC microcode after bad reset/clock order | PIOC not running | Follow reset, SRAM load, IO enable, and clock gate order from EVT examples. |
+| 缺少 CC 比较器阈值 | 无法解码 PD 消息 | CC 上下拉配置必须始终与比较器配置配合。 |
+| `USBPD_PHY_V33` 与 VDD 不匹配 | 无法通信或可能损坏 PHY | 3.3 V 直通模式下设置；VDD 大于 4 V 时清除。 |
+| 时钟改变后复用 BMC 定时器常量 | 协议错误 | 根据当前系统时钟推导定时器值。 |
+| 在错误的 CC 线上通信 | 检测到连接，但 PD 通信失败 | 检测方向并更新 `CC_SEL`。 |
+| 将 Type-C 电流通告当作 PD 协商 | 电源策略错误 | 将 Rp/Rd 电流级别与 PDO/RDO 协商分开。 |
+| CH32M030 受电端设计缺少外部 Rd | 受电端连接/协商失败 | 芯片/封装没有内部 Rd 时，添加所需的 5.1K CC 下拉。 |
+| 未监测 VBUS | 未发现断开或进入不安全的电源状态 | 在受电端/供电端策略中纳入 VBUS 状态。 |
+| 忘记使能 AFIO/重映射时钟 | 引脚重映射无效 | 在 `GPIO_PinRemapConfig` 前使能 AFIO。 |
+| PIOC 引脚仍由 SWJ/SDI 占用 | PIOC RX/TX 引脚不工作 | 仅禁用引脚布局所需的冲突调试/重映射功能。 |
+| 在错误的复位/时钟顺序后加载 PIOC 微码 | PIOC 不运行 | 遵循 EVT 示例中的复位、SRAM 加载、IO 使能及时钟门控顺序。 |
+| 未核实 CC/PHY 电压、Rp/Rd、VBUS 或功率级参数 | 协商失败、电气过应力或器件损坏 | 未经目标芯片 RM/DS、板卡原理图及器件额定值确认，不得接入或切换实际电源；示例常量不能作为安全依据。 |
 
-## HAL Metadata Checklist
+## HAL 元数据检查清单
 
-Future HAL or template metadata should represent these fields explicitly:
+后续 HAL 或模板元数据应显式表示以下字段：
 
-- USBPD instance, register base, IRQ, bus clock domain, and clock enable function.
-- CC1/CC2 pins, package availability, alternate/remap requirements, and board connector orientation mapping.
-- Role policy: source, sink, DRP, data role, power role, VCONN support if implemented.
-- CC pull type, Rp advertised current, internal/external Rd availability, and comparator threshold.
-- PHY voltage mode and board VDD assumption.
-- BMC timer source clock and generated timer constants.
-- PD revision and supported feature level, including whether PPS/APDO or extended messages are implemented.
-- PDO/RDO tables, safe voltage/current limits, and VBUS measurement channel.
-- ISR/event flags and state-machine entry points.
-- PIOC code image, SRAM base, IO pins, remap dependencies, data register usage, and protocol timing clock.
+- USBPD 实例、寄存器基地址、IRQ、总线时钟域及时钟使能函数。
+- CC1/CC2 引脚、封装可用性、复用/重映射要求及开发板连接器方向映射。
+- 角色策略：供电端、受电端、DRP、数据角色、电源角色，以及已实现时的 VCONN 支持。
+- CC 上下拉类型、Rp 通告电流、内部/外部 Rd 可用性及比较器阈值。
+- PHY 电压模式及开发板 VDD 假设。
+- BMC 定时器源时钟及生成的定时器常量。
+- PD 版本及支持的功能级别，包括是否实现 PPS/APDO 或扩展消息。
+- PDO/RDO 表、安全电压/电流限制及 VBUS 测量通道。
+- ISR/事件标志及状态机入口点。
+- PIOC 代码镜像、SRAM 基地址、IO 引脚、重映射依赖项、数据寄存器用途及协议时序时钟。
 
-## Verification Status
+## 验证状态
 
-- Extracted from `Doc/Ref/wch-dev-skill` Markdown sources listed above.
-- Not verified against silicon, schematics, RM, DS, EVT source trees, or USB-IF compliance tools in this pass.
-- Register names, bit names, bus domains, pin mappings, and threshold constants must be checked against the exact target chip header and board schematic before implementation.
+- 提取自上列 `Doc/Ref/wch-dev-skill` Markdown 来源。
+- 本轮未根据芯片实物、原理图、RM、DS、EVT 源码树或 USB-IF 一致性工具进行验证。
+- 实现前，必须根据确切的目标芯片头文件及开发板原理图检查寄存器名、位名、总线域、引脚映射及阈值常量。
+- 所有未验证的 PHY 电压、CC 上下拉、VBUS 检测和供电端输出配置都具有电气损坏风险，必须先查目标 RM/DS 和板级原理图，不得仅凭本文或 EVT 示例上电。

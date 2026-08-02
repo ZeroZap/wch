@@ -1,10 +1,10 @@
-# CH32F And CH32M ARM Family Notes
+# CH32F ARM 系列说明
 
-This document extracts CH32F10x, CH32F20x, and CH32M030 ARM-family guidance from `Doc/Ref/wch-dev-skill` into repository-specific normalization notes.
+本文档保留 `Doc/Ref/wch-dev-skill` 中 CH32F10x、CH32F20x ARM 系列的来源路由。当前 SDK 未导入对应 CH32F EVT，因此以下 CH32F 结论均为来源未验证；CH32M030 已从本组拆出。
 
-Official EVT examples, RM, DS, startup files, linker/scatter files, board schematics, and current repository source remain the final authority.
+官方 EVT 示例、RM、DS、启动代码文件、链接器/分散加载文件、开发板原理图和当前仓库源代码仍是最终依据。
 
-## Source Files
+## 源文件
 
 - `Doc/Ref/wch-dev-skill/chips/ch32f-arm/resources/memory_layout.md`
 - `Doc/Ref/wch-dev-skill/chips/ch32f-arm/resources/example_list.md`
@@ -14,64 +14,65 @@ Official EVT examples, RM, DS, startup files, linker/scatter files, board schema
 - `Doc/Family/family-routing.md`
 - `Doc/Family/family-normalization-notes.md`
 
-## Supported Chips And EVT Roots
+## 支持的芯片和 EVT 根目录
 
-| Source group | Repository EVT roots | Header family | Key constraints |
+| 源组 | 仓库 EVT 根目录 | 头文件系列 | 关键约束 |
 |---|---|---|---|
-| CH32F10x / CH32F103 | Verify `CH32F103EVT/` availability | `ch32f10x.h`, `ch32f10x_*` | Cortex-M3 style, Flash at `0x08000000`, 1 KB pages, USB custom register API. |
-| CH32F20x | Verify `CH32F20xEVT/` availability | `ch32f20x.h`, `ch32f20x_*` | More RAM/features, Ethernet, DVP, I2S, SDIO, USBHS, RNG, BLE examples in source notes. |
-| CH32M030 | `CH32M030EVT/` | CH32F-style headers in source notes | Motor/control and USB-PD-oriented variant; verify exact header and examples. |
+| CH32F10x / CH32F103 | 当前 SDK 未导入 | `ch32f10x.h`, `ch32f10x_*`（来源线索） | Cortex-M3、内存和 USB API 均待导入官方 SDK 后验证。 |
+| CH32F20x | 当前 SDK 未导入 | `ch32f20x.h`, `ch32f20x_*`（来源线索） | 以太网、DVP、I2S、SDIO、USBHS、RNG、BLE 等均为未验证来源线索。 |
 
-## Architecture, Toolchain, Startup, Linker
+CH32M030 实际为 QingKe RISC-V V3B，当前 EVT 主头为 `ch32m030.h`，默认链接脚本为 64 KB Flash、12 KB RAM；应独立归一化，或与低资源 RISC-V StdPeriph 器件分组，不得使用本文件的 ARM 启动和 Flash 基址假设。
 
-- Architecture: ARM Cortex-M style family using StdPeriphDriver-like APIs.
-- Toolchains: Keil MDK and MounRiver projects appear in source notes; preserve original EVT project metadata.
-- Flash base is `0x08000000`, unlike zero-based CH32V RISC-V layouts.
-- Project files include `*_conf.h`, `*_it.c/h`, `system_*.c/h`, debug helpers, startup, and linker/scatter metadata.
+## 架构、工具链、启动代码、链接器
 
-## Memory And Boot Layout
+- 架构：使用 StdPeriphDriver 风格 API 的 ARM Cortex-M 风格系列。
+- 工具链：源说明中有 Keil MDK 和 MounRiver 工程；应保留原始 EVT 工程元数据。
+- Flash 基址为 `0x08000000`，不同于从零开始的 CH32V RISC-V 布局。
+- 工程文件包括 `*_conf.h`、`*_it.c/h`、`system_*.c/h`、调试辅助程序、启动代码和链接器/分散加载元数据。
 
-- CH32F10x source notes list 32 KB to 512 KB Flash and 10 KB to 64 KB SRAM variants.
-- CH32F20x source notes list 64 KB to 256 KB Flash and 20 KB or 64 KB SRAM variants.
-- CH32F10x IAP example uses app origin `0x08001000`; CH32F20x IAP example uses app origin `0x08002000`.
-- Vector table starts at Flash base and can be relocated; verify `SCB->VTOR` handling in IAP projects.
+## 内存和引导布局
 
-## Peripheral And Example Coverage
+- CH32F10x 源说明列出 32 KB 至 512 KB Flash 和 10 KB 至 64 KB SRAM 变体。
+- CH32F20x 源说明列出 64 KB 至 256 KB Flash 和 20 KB 或 64 KB SRAM 变体。
+- CH32F10x IAP 示例使用应用起始地址 `0x08001000`；CH32F20x IAP 示例使用应用起始地址 `0x08002000`。
+- 向量表从 Flash 基址开始且可重定位；需验证 IAP 工程中的 `SCB->VTOR` 处理。
 
-Source examples cover ADC, BKP, CAN, CRC, DAC, DMA, EXTI, Flash, GPIO, I2C, watchdogs, PWR, RCC, RTC, SPI, SysTick, TIM, TouchKey, USART, USB, RTOS, and IAP. CH32F20x sources add DVP, Ethernet, FSMC, I2S, OPA, RNG, SDIO, USBHS, BLE examples, and more application examples. CH32M030 sources include OPA/CMP/PGA, USBFS, USBPD, motor/power examples, and RTOS examples.
+## 外设和示例覆盖范围
 
-## Topic Cross-References
+来源索引声称涵盖 ADC、BKP、CAN、CRC、DAC、DMA、EXTI、Flash、GPIO、I2C、看门狗、PWR、RCC、RTC、SPI、SysTick、TIM、TouchKey、USART、USB、RTOS 和 IAP，并为 CH32F20x 列出 DVP、以太网、FSMC、I2S、OPA、RNG、SDIO、USBHS、BLE。由于当前 SDK 无 CH32F EVT，这些不能写成当前仓库已验证覆盖。
 
-- Common peripherals: `Doc/HAL/wch-hal-normalization.md`.
-- Project templates: `Doc/Templates/wch-project-template-notes.md`.
-- USB/USBHS: `Doc/USB/wch-usb-notes.md`.
-- Ethernet: `Doc/ETH/wch-ethernet-notes.md`.
-- CAN/I2S/DVP: `Doc/IO/wch-io-media-notes.md`.
-- SDIO/storage: `Doc/Storage/wch-storage-notes.md`.
-- USB-PD: `Doc/USBPD/wch-usbpd-notes.md`.
-- Security/RNG/CRC: `Doc/Security/wch-security-crypto-notes.md`.
+## 主题交叉引用
 
-## Known Family Pitfalls
+- 通用外设：`Doc/HAL/wch-hal-normalization.md`。
+- 工程模板：`Doc/Templates/wch-project-template-notes.md`。
+- USB/USBHS：`Doc/USB/wch-usb-notes.md`。
+- 以太网：`Doc/ETH/wch-ethernet-notes.md`。
+- CAN/I2S/DVP：`Doc/IO/wch-io-media-notes.md`。
+- SDIO/存储：`Doc/Storage/wch-storage-notes.md`。
+- USB-PD：`Doc/USBPD/wch-usbpd-notes.md`。
+- 安全/RNG/CRC：`Doc/Security/wch-security-crypto-notes.md`。
 
-- Do not mix `ch32f10x` and `ch32f20x` headers or driver files.
-- Enable RCC clocks before peripheral configuration.
-- Configure NVIC priority grouping before interrupt priorities.
-- Flash must be erased before write; CH32F10x and CH32F20x page sizes differ.
-- GPIO alternate-function mode must match peripheral type, especially I2C open-drain and ADC/DAC analog mode.
-- CH32F USB uses WCH custom register APIs, not STM32 USB OTG APIs.
-- Interrupt handler names must exactly match the vector table.
-- Keep ISR work short; use flags or queues for longer processing.
-- Avoid large stack buffers in USB, Ethernet, SDIO, DVP, and RTOS examples.
+## 已知系列陷阱
 
-## Verification Checklist
+- 不要混用 `ch32f10x` 和 `ch32f20x` 头文件或驱动文件。
+- 配置外设前启用 RCC 时钟。
+- 设置中断优先级前配置 NVIC 优先级分组。
+- 写入 Flash 前必须先擦除；CH32F10x 和 CH32F20x 的页大小不同。
+- GPIO 复用功能模式必须与外设类型匹配，尤其是 I2C 开漏模式和 ADC/DAC 模拟模式。
+- CH32F USB 使用 WCH 自定义寄存器 API，而非 STM32 USB OTG API。
+- 中断处理程序名称必须与向量表完全匹配。
+- ISR 中的工作应保持简短；较长的处理应使用标志或队列。
+- 避免在 USB、以太网、SDIO、DVP 和 RTOS 示例中使用大型栈缓冲区。
 
-- Verify exact EVT roots, project files, compiler, startup, system, linker/scatter, and debug helper files for each chip.
-- Verify `0x08000000` absolute Flash origins and IAP offsets before generating linker files.
-- Verify CH32F20x-only features such as RNG, Ethernet, SDIO, DVP, USBHS, BLE, and OPA against exact chip/package.
-- Verify CH32M030 USBPD, OPA/CMP/PGA, Flash ECC, and motor-control examples against EVT/RM/DS.
+## 验证清单
 
-## Verification Status
+- 验证每款芯片的确切 EVT 根目录、工程文件、编译器、启动代码、系统、链接器/分散加载和调试辅助文件。
+- 生成链接器文件前验证 `0x08000000` 绝对 Flash 起始地址和 IAP 偏移。
+- 根据确切芯片/封装验证 CH32F20x 专有功能，例如 RNG、以太网、SDIO、DVP、USBHS、BLE 和 OPA。
+- CH32M030 的 USBPD、OPA/CMP/PGA 和电机控制应在独立 RISC-V 路由下按 `CH32M030EVT/` 验证。
 
-- Extracted from `Doc/Ref/wch-dev-skill` Markdown sources and repository topic notes listed above.
-- Not fully verified against all CH32F/CH32M EVT trees, RM, DS, project files, startup files, linker/scatter files, packages, or board schematics in this pass.
-- Treat feature availability and memory values as preliminary until checked against exact official material.
+## 验证状态
+
+- 根据 `Doc/Ref/wch-dev-skill` Markdown 源和上述仓库主题说明提取。
+- 当前 SDK 未导入 CH32F EVT；本轮未验证 CH32F 的 RM、DS、工程、启动代码、链接器/分散加载文件、封装或开发板资料。
+- 在根据确切官方资料完成核查前，应将功能可用性和内存值视为初步信息。

@@ -1,16 +1,16 @@
-# WCH HAL Normalization Notes
+# WCH HAL 归一化笔记
 
-This document extracts common peripheral patterns from `Doc/Ref/wch-dev-skill` into repository-specific rules for future WCH HAL unification.
+本文从 `Doc/Ref/wch-dev-skill` 中提取通用外设模式，整理为适用于本仓库未来 WCH HAL 统一工作的规则。
 
-Scope:
+范围：
 
-- First pass covers GPIO, clock/RCC, UART/USART, ADC, DMA, and Flash storage.
-- Families represented: CH57x/CH58x BLE-style APIs, CH32V/CH32F/CH32X/CH32H StdPeriph-style APIs, CH561/CH563 register-level APIs, and CH5xx 8051 APIs.
-- This is not a final HAL API specification. It is a normalization guide and checklist.
+- 第一轮涵盖 GPIO、时钟/RCC、UART/USART、ADC、DMA 及 Flash 存储。
+- 涵盖的系列：CH57x/CH58x BLE 风格 API、CH32V/CH32F/CH32X/CH32H StdPeriph 风格 API、CH561/CH563 寄存器级 API 及 CH5xx 8051 API。
+- 本文并非最终 HAL API 规范，而是归一化指南和检查清单。
 
-Official EVT examples, RM, DS, headers, and current repository source remain the final authority.
+官方 EVT 示例、RM、DS、头文件及当前仓库源码仍是最终依据。
 
-## Source Files
+## 来源文件
 
 - `Doc/Ref/wch-dev-skill/SKILL.md`
 - `Doc/Ref/wch-dev-skill/AGENTS.md`
@@ -22,242 +22,245 @@ Official EVT examples, RM, DS, headers, and current repository source remain the
 - `Doc/Ref/wch-dev-skill/chips/*/resources/peripheral_api.md`
 - `Doc/Ref/wch-dev-skill/chips/*/resources/pitfalls.md`
 
-## API Style Families
+## API 风格系列
 
-| Style | Families | Characteristics | HAL adapter implication |
+| 风格 | 系列 | 特征 | 对 HAL 适配器的影响 |
 |---|---|---|---|
-| BLE common API | CH57x, CH58x/CH59x | Functions like `GPIOA_ModeCfg`, `GPIOA_SetBits`, `UART1_DefInit`; PFIC interrupts | Needs compact direct helpers and highcode-aware ISR support. |
-| StdPeriphDriver | CH32V, CH32F, CH32X, CH32H | `GPIO_InitTypeDef`, `USART_InitTypeDef`, `RCC_*ClockCmd`, `NVIC_Init` | Natural fit for structured HAL config objects. |
-| Register-level ARM7 | CH561/CH563 | `R32_PA_DIR`, `R32_PA_OUT`, `R8_*` clock/IRQ registers | HAL adapter must map operations to bitfield writes, not StdPeriph calls. |
-| 8051 SFR | CH5xx | `Pn_MOD_OC`, `Pn_DIR_PU`, bit-addressable pins, safe mode, `interrupt` syntax | HAL adapter must model memory qualifiers, SFR bits, and compiler constraints. |
+| BLE 通用 API | CH57x、CH58x/CH59x | `GPIOA_ModeCfg`、`GPIOA_SetBits`、`UART1_DefInit` 等函数；PFIC 中断 | 需要精简的直接辅助函数及感知 highcode 的 ISR 支持。 |
+| StdPeriphDriver | CH32V、CH32M030、CH32F、CH32X、CH32H | `GPIO_InitTypeDef`、`USART_InitTypeDef`、`RCC_*ClockCmd`、`NVIC_Init` | 天然适合结构化 HAL 配置对象；CH32M030 是 QingKe RISC-V V3B，不得归入 CH32F ARM。 |
+| 寄存器级 ARM7 | CH561/CH563（当前 SDK 未导入，来源未验证） | 来源笔记中的 `R32_PA_DIR`、`R32_PA_OUT`、`R8_*` 时钟/IRQ 寄存器 | 导入官方 SDK 前不生成适配器；来源线索指向位域写入而非 StdPeriph 调用。 |
+| 8051 SFR | CH5xx | `Pn_MOD_OC`、`Pn_DIR_PU`、位寻址引脚、安全模式、`interrupt` 语法 | HAL 适配器必须对存储器限定符、SFR 位及编译器约束建模。 |
 
-## Universal Peripheral Initialization Order
+## 通用外设初始化顺序
 
-Across WCH families, peripheral bring-up should follow this order:
+各 WCH 系列的外设启动应遵循以下顺序：
 
-1. Select system/peripheral clock source and update system clock state.
-2. Enable peripheral bus clock or power gate.
-3. Configure GPIO pin mode and alternate function.
-4. Configure peripheral registers or init structure.
-5. Configure DMA if used.
-6. Configure interrupt controller if used.
-7. Enable the peripheral.
-8. Clear pending flags before entering the main loop.
+1. 选择系统/外设时钟源并更新系统时钟状态。
+2. 启用外设总线时钟或电源门控。
+3. 配置 GPIO 引脚模式及复用功能。
+4. 配置外设寄存器或初始化结构体。
+5. 使用 DMA 时配置 DMA。
+6. 使用中断时配置中断控制器。
+7. 启用外设。
+8. 进入主循环前清除待处理标志。
 
-Do not invert clock/GPIO/peripheral order unless an EVT example explicitly requires it.
+除非 EVT 示例明确要求，否则不要颠倒时钟/GPIO/外设的顺序。
 
-## Clock And RCC Normalization
+## 时钟与 RCC 归一化
 
-HAL metadata should distinguish these clock operations:
+HAL 元数据应区分以下时钟操作：
 
-| Operation | StdPeriph-style example | BLE-style / register-style equivalent |
+| 操作 | StdPeriph 风格示例 | BLE 风格/寄存器风格等效操作 |
 |---|---|---|
-| System clock select/update | `SystemCoreClockUpdate()` | `SetSysClock(...)` |
-| Peripheral clock enable | `RCC_APB2PeriphClockCmd(...)`, `RCC_AHBPeriphClockCmd(...)` | `PWR_PeriphClkCfg(...)`, register clock-gate bits, or family helper |
-| ADC clock prescale | `RCC_ADCCLKConfig(...)` | Family-specific ADC clock config |
-| Low-power gate | RCC/PWR gating | Sleep clock disable registers on register-level parts |
+| 系统时钟选择/更新 | `SystemCoreClockUpdate()` | `SetSysClock(...)` |
+| 外设时钟使能 | `RCC_APB2PeriphClockCmd(...)`、`RCC_AHBPeriphClockCmd(...)` | `PWR_PeriphClkCfg(...)`、寄存器时钟门控位或系列辅助函数 |
+| ADC 时钟预分频 | `RCC_ADCCLKConfig(...)` | 系列特定的 ADC 时钟配置 |
+| 低功耗门控 | RCC/PWR 门控 | 寄存器级器件上的休眠时钟禁用寄存器 |
 
-Rules:
+规则：
 
-- HAL descriptions must include bus domain and clock enable dependency for each peripheral instance.
-- GPIO and AFIO/remap clocks are separate on many StdPeriph families.
-- Register-level families may use inverted clock-gate bits, such as 0 meaning clock enabled.
+- HAL 描述必须包含每个外设实例的总线域及时钟使能依赖关系。
+- 许多 StdPeriph 系列的 GPIO 与 AFIO/重映射时钟相互独立。
+- 寄存器级系列可能使用反相时钟门控位，例如 0 表示时钟已启用。
 
-## GPIO Normalization
+## GPIO 归一化
 
-Common logical GPIO model:
+通用逻辑 GPIO 模型：
 
-| HAL concept | StdPeriph mapping | CH57x/CH58x mapping | CH561/CH563 mapping | CH5xx mapping |
+| HAL 概念 | StdPeriph 映射 | CH57x/CH58x 映射 | CH561/CH563 映射 | CH5xx 映射 |
 |---|---|---|---|---|
-| Floating input | `GPIO_Mode_IN_FLOATING` | `GPIO_ModeIN_Floating` | direction input, no PU/PD | `Pn_MOD_OC=0`, `Pn_DIR_PU=0` |
-| Pull-up input | `GPIO_Mode_IPU` | `GPIO_ModeIN_PU` | direction input + PU bit | quasi or input with pull mode depending chip |
-| Pull-down input | `GPIO_Mode_IPD` | `GPIO_ModeIN_PD` | direction input + PD bit | chip-specific, often limited |
-| Push-pull output | `GPIO_Mode_Out_PP` | `GPIO_ModeOut_PP_*mA` | DIR output, optional drive bit | `Pn_MOD_OC=0`, `Pn_DIR_PU=1` |
-| Open-drain output | `GPIO_Mode_Out_OD` or `GPIO_Mode_AF_OD` | family-specific | DIR output + open-drain/PD bit | `Pn_MOD_OC=1`, `Pn_DIR_PU=0` |
-| Alternate function | `GPIO_Mode_AF_PP` or `GPIO_Mode_AF_OD` plus remap | family pin function setup | register mux where available | `PIN_FUNC` bits |
+| 浮空输入 | `GPIO_Mode_IN_FLOATING` | `GPIO_ModeIN_Floating` | 输入方向，无 PU/PD | `Pn_MOD_OC=0`、`Pn_DIR_PU=0` |
+| 上拉输入 | `GPIO_Mode_IPU` | `GPIO_ModeIN_PU` | 输入方向 + PU 位 | 准双向模式或带上拉模式的输入，取决于芯片 |
+| 下拉输入 | `GPIO_Mode_IPD` | `GPIO_ModeIN_PD` | 输入方向 + PD 位 | 芯片特定，通常受限 |
+| 推挽输出 | `GPIO_Mode_Out_PP` | `GPIO_ModeOut_PP_*mA` | DIR 输出，可选驱动位 | `Pn_MOD_OC=0`、`Pn_DIR_PU=1` |
+| 开漏输出 | `GPIO_Mode_Out_OD` 或 `GPIO_Mode_AF_OD` | 系列特定 | DIR 输出 + 开漏/PD 位 | `Pn_MOD_OC=1`、`Pn_DIR_PU=0` |
+| 复用功能 | `GPIO_Mode_AF_PP` 或 `GPIO_Mode_AF_OD` 加重映射 | 系列引脚功能设置 | 可用时使用寄存器多路复用 | `PIN_FUNC` 位 |
 
-GPIO HAL requirements:
+GPIO HAL 要求：
 
-- Represent port, pin, mode, pull, drive strength, output type, speed, and alternate function separately.
-- Track whether a family uses explicit AF mode, remap bits, or dedicated pin-function registers.
-- Require peripheral pin ownership checks before enabling a conflicting peripheral.
-- For EXTI/GPIO interrupts, include trigger mode, polarity, pending flag clear behavior, and IRQ controller enable.
+- 分别表示端口、引脚、模式、上下拉、驱动强度、输出类型、速度及复用功能。
+- 记录系列使用显式 AF 模式、重映射位还是专用引脚功能寄存器。
+- 启用存在冲突的外设前，必须检查外设引脚归属。
+- 对于 EXTI/GPIO 中断，应包含触发模式、极性、待处理标志清除行为及 IRQ 控制器使能。
 
-GPIO pitfalls:
+GPIO 陷阱：
 
-- GPIO writes silently fail when the port clock is not enabled on StdPeriph families.
-- EXTI/remap fails without AFIO clock on CH32V-style APIs.
-- Floating input is unstable without external or internal pull configuration.
-- 8051 quasi-bidirectional mode is not equivalent to push-pull output.
+- StdPeriph 系列未启用端口时钟时，GPIO 写入会静默失败。
+- 使用 CH32V 风格 API 时，没有 AFIO 时钟会导致 EXTI/重映射失败。
+- 未配置外部或内部上下拉时，浮空输入不稳定。
+- 8051 准双向模式不等同于推挽输出。
 
-## UART/USART Normalization
+## UART/USART 归一化
 
-Common UART model:
+通用 UART 模型：
 
-| Concept | Fields |
+| 概念 | 字段 |
 |---|---|
-| Instance | UART/USART index and register base |
-| Pins | TX, RX, optional RTS/CTS, remap option |
-| Format | baud, data bits, stop bits, parity |
-| Mode | TX, RX, half-duplex, synchronous, flow control |
-| Transfer | polling, interrupt RX/TX, DMA TX/RX |
-| Debug | default printf UART, usually 115200 8N1 |
+| 实例 | UART/USART 索引及寄存器基地址 |
+| 引脚 | TX、RX、可选 RTS/CTS、重映射选项 |
+| 格式 | 波特率、数据位、停止位、奇偶校验 |
+| 模式 | TX、RX、半双工、同步、流控 |
+| 传输 | 轮询、中断 RX/TX、DMA TX/RX |
+| 调试 | 默认 printf UART，通常为 115200 8N1 |
 
-StdPeriph initialization sequence:
+StdPeriph 初始化顺序：
 
-1. Enable GPIO and USART clocks.
-2. Configure TX pin as alternate-function push-pull.
-3. Configure RX pin as floating input or pull-up input, depending family example.
-4. Fill `USART_InitTypeDef`.
-5. Call `USART_Init()`.
-6. Enable interrupts or DMA if needed.
-7. Call `USART_Cmd(..., ENABLE)`.
+1. 启用 GPIO 和 USART 时钟。
+2. 将 TX 引脚配置为复用推挽输出。
+3. 根据系列示例将 RX 引脚配置为浮空输入或上拉输入。
+4. 填充 `USART_InitTypeDef`。
+5. 调用 `USART_Init()`。
+6. 根据需要启用中断或 DMA。
+7. 调用 `USART_Cmd(..., ENABLE)`。
 
-HAL adapter rules:
+HAL 适配器规则：
 
-- Do not assume TX/RX pins are fixed; remap is family and instance specific.
-- Model DMA request channel mapping separately from UART instance.
-- Ring buffers are a template concern, not a low-level UART peripheral requirement.
-- For BLE-style parts, helpers like `UART1_DefInit()` may configure defaults and hide pins; HAL should expose explicit pin mode when generating reusable code.
+- 不要假定 TX/RX 引脚固定；重映射因系列和实例而异。
+- DMA 请求通道映射应与 UART 实例分开建模。
+- 环形缓冲区属于模板关注点，而非底层 UART 外设要求。
+- 对于 BLE 风格器件，`UART1_DefInit()` 等辅助函数可能配置默认值并隐藏引脚；生成可复用代码时，HAL 应公开显式引脚模式。
 
-## ADC Normalization
+## ADC 归一化
 
-Common ADC model:
+通用 ADC 模型：
 
-| Concept | Fields |
+| 概念 | 字段 |
 |---|---|
-| Instance | ADC index and channel count |
-| Channel | external pin channel, internal temperature, Vrefint |
-| GPIO mode | analog input or family equivalent |
-| Clock | ADC clock divider and max frequency limit |
-| Sequence | rank, sample time, scan count |
-| Conversion mode | single, continuous, triggered, injected |
-| Transfer | polling EOC, interrupt, DMA circular buffer |
-| Calibration | reset/start/wait before first conversion where required |
+| 实例 | ADC 索引及通道数 |
+| 通道 | 外部引脚通道、内部温度、Vrefint |
+| GPIO 模式 | 模拟输入或系列等效模式 |
+| 时钟 | ADC 时钟分频器及最大频率限制 |
+| 序列 | 排位、采样时间、扫描数量 |
+| 转换模式 | 单次、连续、触发、注入 |
+| 传输 | 轮询 EOC、中断、DMA 环形缓冲区 |
+| 校准 | 有要求时在首次转换前复位/启动/等待 |
 
-ADC rules extracted from the source docs:
+从来源文档提取的 ADC 规则：
 
-- Configure analog GPIO mode before sampling external channels.
-- Enable ADC peripheral clock before ADC init.
-- Configure ADC clock divider so the ADC clock stays within family limits.
-- Run calibration before first conversion on CH32V-style ADCs.
-- For multi-channel continuous scanning, DMA circular mode is the usual template.
-- Internal temperature and reference channels require explicit enable calls where available.
+- 采样外部通道前配置模拟 GPIO 模式。
+- 初始化 ADC 前启用 ADC 外设时钟。
+- 配置 ADC 时钟分频器，使 ADC 时钟保持在系列限制内。
+- 对于 CH32V 风格 ADC，在首次转换前运行校准。
+- 多通道连续扫描通常使用 DMA 循环模式模板。
+- 内部温度及参考通道可用时，需要显式调用使能函数。
 
-Pitfalls:
+陷阱：
 
-- Skipping ADC calibration leads to inaccurate or invalid readings.
-- Using digital input/output pin mode for analog channels corrupts readings.
-- Forgetting DMA circular mode in continuous scan loses repeated samples.
-- Temperature conversion formulas are family/reference-voltage dependent and must be verified against RM/DS.
+- 跳过 ADC 校准会导致读数不准确或无效。
+- 对模拟通道使用数字输入/输出引脚模式会破坏读数。
+- 连续扫描时忘记使用 DMA 循环模式会丢失重复采样数据。
+- 温度转换公式取决于系列/参考电压，必须对照 RM/DS 验证。
 
-## DMA Normalization
+## DMA 归一化
 
-Common DMA model:
+通用 DMA 模型：
 
-| Concept | Fields |
+| 概念 | 字段 |
 |---|---|
-| Controller/channel | DMA instance and channel or request line |
-| Direction | memory-to-memory, peripheral-to-memory, memory-to-peripheral |
-| Addresses | peripheral register address, memory buffer address |
-| Increment | peripheral increment, memory increment |
-| Width | byte, halfword, word |
-| Mode | normal or circular |
-| Priority | low/medium/high/very-high |
-| Trigger | peripheral request mapping |
-| Interrupts | transfer complete, half transfer, error |
+| 控制器/通道 | DMA 实例及通道或请求线 |
+| 方向 | 存储器到存储器、外设到存储器、存储器到外设 |
+| 地址 | 外设寄存器地址、存储器缓冲区地址 |
+| 递增 | 外设递增、存储器递增 |
+| 宽度 | 字节、半字、字 |
+| 模式 | 正常或循环 |
+| 优先级 | 低/中/高/极高 |
+| 触发 | 外设请求映射 |
+| 中断 | 传输完成、半传输、错误 |
 
-DMA rules:
+DMA 规则：
 
-- Enable DMA clock before channel configuration.
-- Deinit or disable the channel before changing configuration.
-- Peripheral data register addresses must match the family header, such as `USARTx->DATAR` or `ADCx->RDATAR` in CH32V-style examples.
-- Request/channel mapping is not portable across families; keep it in metadata.
-- Continuous ADC scan should use circular DMA unless the application intentionally uses a finite capture.
-- For UART TX DMA, set data counter before enabling the DMA channel for each transfer.
+- 配置通道前启用 DMA 时钟。
+- 更改配置前反初始化或禁用通道。
+- 外设数据寄存器地址必须与系列头文件一致，例如 CH32V 风格示例中的 `USARTx->DATAR` 或 `ADCx->RDATAR`。
+- 请求/通道映射无法跨系列移植；应将其保存在元数据中。
+- 除非应用程序有意进行有限次采集，否则连续 ADC 扫描应使用循环 DMA。
+- 对于 UART TX DMA，每次传输都应在启用 DMA 通道前设置数据计数器。
+- CH32H 双核适配还必须建模 IPC、HSEM 以及 `SysTick0`/`SysTick1`；共享外设或缓冲区不能只依靠单核临界区假设。
 
-## Flash Storage Normalization
+## Flash 存储归一化
 
-Common Flash model:
+通用 Flash 模型：
 
-| Concept | Fields |
+| 概念 | 字段 |
 |---|---|
-| Region | code Flash, DataFlash, option bytes, SNV/NV area |
-| Erase unit | bytes per page/sector/block |
-| Program unit | byte, halfword, word, page, family-specific fast write |
-| Unlock/lock | required sequence and API |
-| Protection | write protection, option bytes, safe mode |
-| Safety | read-modify-write, verify, avoid active code area |
+| 区域 | 代码 Flash、DataFlash、选项字节、SNV/NV 区域 |
+| 擦除单元 | 每页/扇区/块的字节数 |
+| 编程单元 | 字节、半字、字、页、系列特定的快速写入 |
+| 解锁/锁定 | 所需序列及 API |
+| 保护 | 写保护、选项字节、安全模式 |
+| 安全性 | 读取-修改-写入、验证、避开当前代码区域 |
 
-Flash rules:
+Flash 规则：
 
-- Always unlock before erase/program when the family requires it.
-- Clear status flags before starting a new operation on StdPeriph-style Flash APIs.
-- Erase before writing; Flash programming cannot change bits from 0 back to 1.
-- Use read-modify-write for partial page updates.
-- Lock Flash after programming.
-- Verify written data when storing configuration or boot metadata.
-- Never use a data storage address without checking linker layout, IAP offset, and OTA/SNV/DataFlash regions.
+- 系列有要求时，擦除/编程前务必解锁。
+- 使用 StdPeriph 风格 Flash API 时，开始新操作前清除状态标志。
+- 写入前先擦除；Flash 编程无法将位从 0 改回 1。
+- 页内局部更新应使用读取-修改-写入。
+- 编程后锁定 Flash。
+- 存储配置或启动元数据时验证写入的数据。
+- 未检查链接器布局、IAP 偏移及 OTA/SNV/DataFlash 区域前，绝不要使用数据存储地址。
 
-Known erase units from extracted notes:
+提取的笔记中已知的擦除单元：
 
-| Family | Erase unit |
+| 系列 | 擦除单元 |
 |---|---|
-| CH57x | 256 bytes |
-| CH58x/CH59x | 256 bytes |
-| CH32V003 | 64 bytes |
-| CH32V006/CH32L103 | 1024 bytes |
-| CH32V103 | 1024 bytes |
-| CH32V20x/CH32V307/CH32V407 | 4096 bytes |
-| CH32H417 | 4096 bytes |
-| CH561/CH563 | 4096 bytes |
-| CH5xx 8051 DataFlash | chip-specific byte-oriented DataFlash with protected-write rules |
+| CH57x | 256 字节 |
+| CH58x/CH59x | 256 字节 |
+| CH32V003 | 64 字节 |
+| CH32V006/CH32L103 | 1024 字节 |
+| CH32V103 | 1024 字节 |
+| CH32V20x/CH32V307/CH32V407 | 4096 字节 |
+| CH32M030 | 使用当前 `CH32M030EVT` Flash 驱动/RM 验证，不从 CH32F 或其他低资源器件推断 |
+| CH32H417 | 4096 字节 |
+| CH561/CH563 | 4096 字节 |
+| CH5xx 8051 DataFlash | 芯片特定的字节导向 DataFlash，具有受保护写入规则 |
 
-## Register-Level And 8051 Adapter Rules
+## 寄存器级与 8051 适配器规则
 
 CH561/CH563:
 
-- No `GPIO_InitTypeDef` or StdPeriph GPIO calls in source notes.
-- GPIO control maps to direction, pull, drive, clear, output, and interrupt registers.
-- IRQ setup uses dedicated enable/status/mode/polarity registers and `__irq` handlers.
-- Clock gates may use sleep clock-off registers rather than RCC helpers.
+- 当前 SDK 未导入对应 EVT，本节全部为来源未验证线索，不表示当前仓库已有驱动或示例覆盖。
+- 来源笔记中没有 `GPIO_InitTypeDef` 或 StdPeriph GPIO 调用。
+- GPIO 控制映射到方向、上下拉、驱动、清除、输出及中断寄存器。
+- IRQ 设置使用专用的使能/状态/模式/极性寄存器及 `__irq` 处理程序。
+- 时钟门控可能使用休眠时钟关闭寄存器，而非 RCC 辅助函数。
 
 CH5xx 8051:
 
-- GPIO mode is controlled by `Pn_MOD_OC` and `Pn_DIR_PU` pairs.
-- Some pin functions are selected through `PIN_FUNC` bits.
-- Interrupts use compiler-specific vector declarations such as `interrupt INT_NO_GPIO using 1`.
-- Flash/DataFlash writes require safe mode and interrupt masking.
-- Large buffers should be placed in `xdata`, not `data`.
+- GPIO 模式由 `Pn_MOD_OC` 与 `Pn_DIR_PU` 对控制。
+- 某些引脚功能通过 `PIN_FUNC` 位选择。
+- 中断使用编译器特定的向量声明，例如 `interrupt INT_NO_GPIO using 1`。
+- Flash/DataFlash 写入需要安全模式及中断屏蔽。
+- 大型缓冲区应放入 `xdata`，而非 `data`。
 
-## Proposed HAL Metadata Primitives
+## 建议的 HAL 元数据基本项
 
-Use these concepts in future metadata extraction:
+未来提取元数据时使用以下概念：
 
-- `family`: chip family route from `Doc/Family/family-routing.md`.
-- `instance`: peripheral instance name and base address.
-- `clock`: clock gate API/register, bus domain, reset dependency.
-- `pin`: port, pin, mode, pull, drive, speed, AF/remap, conflict list.
-- `irq`: IRQ name/vector, priority model, handler syntax, flag clear rule.
-- `dma`: request source, controller, channel, direction, widths, circular support.
-- `flash`: erase unit, program unit, safe regions, unlock/lock API.
-- `template`: minimal init sequence and required include/header set.
+- `family`：来自 `Doc/Family/family-routing.md` 的芯片系列路由。
+- `instance`：外设实例名称及基地址。
+- `clock`：时钟门控 API/寄存器、总线域、复位依赖关系。
+- `pin`：端口、引脚、模式、上下拉、驱动、速度、AF/重映射、冲突列表。
+- `irq`：IRQ 名称/向量、优先级模型、处理程序语法、标志清除规则。
+- `dma`：请求源、控制器、通道、方向、宽度、循环支持。
+- `flash`：擦除单元、编程单元、安全区域、解锁/锁定 API。
+- `template`：最小初始化序列及所需包含文件/头文件集合。
 
-## Cross-Family HAL Checklist
+## 跨系列 HAL 检查清单
 
-Before promoting any peripheral rule into a shared HAL abstraction, verify:
+将任何外设规则提升为共享 HAL 抽象前，验证：
 
-- Does the target family use StdPeriph, BLE helper APIs, register-level SFR, or 8051 SFR?
-- Which clock must be enabled before peripheral access?
-- Which GPIO mode and remap/alternate-function path is required?
-- Which IRQ controller and handler attribute syntax is valid?
-- Are status flags cleared by write-0, write-1, read side effect, or API call?
-- Is DMA request/channel mapping fixed, remappable, or absent?
-- What Flash erase/program unit applies to persistent storage examples?
-- Is there an existing EVT example that matches the intended template?
+- 目标系列使用 StdPeriph、BLE 辅助 API、寄存器级 SFR 还是 8051 SFR？
+- 访问外设前必须启用哪个时钟？
+- 需要哪种 GPIO 模式及重映射/复用功能路径？
+- 哪种 IRQ 控制器及处理程序属性语法有效？
+- 状态标志通过写 0、写 1、读取副作用还是 API 调用清除？
+- DMA 请求/通道映射是固定、可重映射还是不存在？
+- 持久化存储示例适用哪种 Flash 擦除/编程单元？
+- 是否存在与预期模板匹配的 EVT 示例？
 
-## Verification Status
+## 验证状态
 
-- Extracted from `wch-dev-skill` Markdown only.
-- Exact API names and request mappings must be checked against repository EVT headers before code generation.
-- Next verification pass should inspect representative EVT examples for GPIO, USART, ADC, DMA, and Flash in each imported family.
+- 仅提取自 `wch-dev-skill` Markdown。
+- 生成代码前，必须对照仓库中的 EVT 头文件检查准确的 API 名称及请求映射。
+- 下一轮验证应检查各已导入系列中具有代表性的 GPIO、USART、ADC、DMA 及 Flash EVT 示例。

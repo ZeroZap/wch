@@ -1,10 +1,10 @@
-# CH32V General Family Notes
+# CH32V 通用系列说明
 
-This document extracts CH32V103, CH32V20x, CH32V307, and CH32V407 family guidance from `Doc/Ref/wch-dev-skill` into repository-specific normalization notes for future HAL metadata and template work.
+本文档从 `Doc/Ref/wch-dev-skill` 提取 CH32V103、CH32V20x、CH32V307 和 CH32V407 系列指导，形成面向未来 HAL 元数据和模板工作的仓库专用归一化说明。
 
-Official EVT examples, RM, DS, startup files, linker scripts, board schematics, and current repository source remain the final authority.
+官方 EVT 示例、RM、DS、启动代码文件、链接脚本、开发板原理图和当前仓库源代码仍是最终依据。
 
-## Source Files
+## 源文件
 
 - `Doc/Ref/wch-dev-skill/chips/ch32v-general/resources/memory_layout.md`
 - `Doc/Ref/wch-dev-skill/chips/ch32v-general/resources/example_list.md`
@@ -14,84 +14,84 @@ Official EVT examples, RM, DS, startup files, linker scripts, board schematics, 
 - `Doc/Family/family-routing.md`
 - `Doc/Family/family-normalization-notes.md`
 
-## Supported Chips And EVT Roots
+## 支持的芯片和 EVT 根目录
 
-| Subfamily | Example EVT roots in this repository | Header pattern | Notes |
+| 子系列 | 本仓库中的示例 EVT 根目录 | 头文件模式 | 说明 |
 |---|---|---|---|
-| CH32V103 | `CH32V103EVT/` | `ch32v10x.h`, `ch32v10x_*` | General StdPeriph-style RISC-V baseline; feature tables in source notes should be verified per chip. |
-| CH32V20x | `CH32V20xEVT/` | `ch32v20x.h`, `ch32v20x_*` | V20x/V208 variants add BLE/USB/high-speed features depending package. |
-| CH32V307 | `CH32V307EVT/` | `ch32v30x.h`, `ch32v30x_*` | Higher-performance family with Ethernet examples and 64 KB RAM variants. |
-| CH32V407 | `CH32V407EVT/` | `ch32v4x7.h`, `ch32v4x7_*` | High-feature CH32V family with USB HS, Ethernet, SDIO, DVP, FSMC/LTDC-style source references. |
+| CH32V103 | `CH32V103EVT/` | `ch32v10x.h`, `ch32v10x_*` | 通用 StdPeriph 风格 RISC-V 基准；源说明中的功能表应按芯片验证。 |
+| CH32V20x | `CH32V20xEVT/` | `ch32v20x.h`, `ch32v20x_*` | V20x/V208 变体视封装增加 BLE/USB/高速功能。 |
+| CH32V307 | `CH32V307EVT/` | `ch32v30x.h`, `ch32v30x_*` | 更高性能的系列，带以太网示例和 64 KB RAM 变体。 |
+| CH32V407 | `CH32V407EVT/` | `ch32v4x7.h`, `ch32v4x7_*` | 高功能 CH32V 系列，带 USB HS、以太网、SDIO、DVP、FSMC/LTDC 风格源参考资料。 |
 
-## Architecture, Toolchain, Startup, Linker
+## 架构、工具链、启动代码、链接器
 
-- Architecture: WCH RISC-V with StdPeriphDriver-style peripheral APIs.
-- Toolchain: MounRiver Studio project files (`.project`, `.cproject`, `.wvproj`) with GCC-style `Ld/Link.ld`.
-- Shared project shape: `User/`, `SRC/Peripheral/inc`, `SRC/Peripheral/src`, `SRC/Startup`, `SRC/RVMSIS`, and `Ld/Link.ld`.
-- Template starting point: copy the closest EVT example rather than building from snippets.
-- Debug convention: `SystemCoreClockUpdate()`, delay/debug init, `USART_Printf_Init(115200)`, and chip ID print are common in source templates.
+- 架构：WCH RISC-V，使用 StdPeriphDriver 风格的外设 API。
+- 工具链：带 GCC 风格 `Ld/Link.ld` 的 MounRiver Studio 工程文件（`.project`、`.cproject`、`.wvproj`）。
+- 共享工程结构：`User/`、`SRC/Peripheral/inc`、`SRC/Peripheral/src`、`SRC/Startup`、`SRC/RVMSIS` 和 `Ld/Link.ld`。
+- 模板起点：复制最接近的 EVT 示例，而不是根据代码片段构建。
+- 调试约定：源模板中通常调用 `SystemCoreClockUpdate()`、延时/调试初始化、`USART_Printf_Init(115200)`，并打印芯片 ID。
 
-## Memory And Boot Layout
+## 内存和引导布局
 
-Memory size varies strongly by subfamily and package.
+内存大小随子系列和封装有很大差异。
 
-| Subfamily | Source-note Flash/RAM examples | Flash erase note |
+| 子系列 | 源说明中的 Flash/RAM 示例 | Flash 擦除说明 |
 |---|---|---|
-| CH32V103 | 32/64/128 KB Flash, 10/20 KB RAM | Source note lists 1 KB pages. |
-| CH32V20x | 32/64/128 KB common, larger D8 example noted; 10/20/64 KB RAM | Source note lists 4 KB pages. |
-| CH32V307 | 128/256 KB Flash, 64 KB RAM | Source note lists 4 KB pages. |
-| CH32V407 | 256 KB or 1 MB Flash, 64 KB RAM | Source note lists 4 KB pages. |
+| CH32V103 | 32/64/128 KB Flash、10/20 KB RAM | 源说明列出 1 KB 页。 |
+| CH32V20x | 通常为 32/64/128 KB，另有更大的 D8 示例；10/20/64 KB RAM | 源说明列出 4 KB 页。 |
+| CH32V307 | 128/256 KB Flash、64 KB RAM | 源说明列出 4 KB 页。 |
+| CH32V407 | 当前默认链接为 576 KB Flash、136 KB RAM，RAM 首 1 KB 保留；脚本还列出 512 KB Flash/200 KB RAM 选项 | 源说明列出 4 KB 页。 |
 
-Rules:
+规则：
 
-- Do not reuse one `Link.ld` across chip memory densities.
-- IAP layouts in source notes include a 16 KB bootloader with app at `0x00004000` for the CH32V general example. Verify against the actual EVT IAP project before applying.
-- Flash write requires erase first; partial updates need read-modify-erase-write around the erase page.
-- Stack and heap sizes are linker-controlled and must be adjusted for RTOS, USB, ETH, SDIO, graphics, or large buffers.
+- 不要在不同内存容量的芯片间复用同一个 `Link.ld`。
+- 当前 CH32V103/V20x/V307/V407 USB/UART IAP APP 从 `0x00005000` 开始，即预留 20 KB，而不是 `0x00004000`；Host IAP 仍有其他偏移，例如 CH32V307 为 `0x00006000`，必须按所选工程验证。
+- 写入 Flash 前必须先擦除；局部更新需要围绕擦除页执行读取-修改-擦除-写入。
+- 栈和堆大小由链接器控制，必须针对 RTOS、USB、ETH、SDIO、图形或大型缓冲区进行调整。
 
-## Peripheral Coverage Highlights
+## 外设覆盖重点
 
-The source example index lists broad coverage, but exact support must be verified by chip:
+源示例索引列出了广泛的覆盖范围，但必须按芯片验证确切支持情况：
 
-- Common: GPIO, USART, SPI, I2C, ADC, Timer/PWM, DMA, EXTI, Flash, RCC, PWR, watchdogs.
-- Communications: CAN on all listed subfamilies in the source matrix; USB FS broadly, USB HS on CH32V407-style sources.
-- High-speed and media: Ethernet on capable V208/V307/V407 variants, SDIO, FSMC, DVP, I2S, LTDC/ARGB/I3C/PSRAM where source examples list them.
-- System and analog: RTC, CRC, RNG, DAC, OPA, TouchKey, PMP, FPU depending subfamily.
-- RTOS: source index lists FreeRTOS/RT-Thread/HarmonyOS/TencentOS for CH32V103/V307/V407, but not CH32V20x in the table; verify repository EVT coverage.
+- 通用：GPIO、USART、SPI、I2C、ADC、定时器/PWM、DMA、EXTI、Flash、RCC、PWR、看门狗。
+- 通信：CAN 必须按子系列的当前驱动和 EXAM 目录验证，不能概括为所有 CH32V 均有；当前 `CH32V103EVT` 未见 CAN 驱动头或 CAN 示例证据。普遍支持 USB FS，CH32V407 风格源支持 USB HS。
+- 高速和媒体：有能力的 V208/V307/V407 变体支持以太网，源示例列出时还包括 SDIO、FSMC、DVP、I2S、LTDC/ARGB/I3C/PSRAM。
+- 系统和模拟：视子系列而定，包括 RTC、CRC、RNG、DAC、OPA、TouchKey、PMP、FPU。
+- RTOS：当前 CH32V103、CH32V20x、CH32V307、CH32V407 EVT 均有 FreeRTOS、RT-Thread、HarmonyOS LiteOS 及 TencentOS 工程；具体目录、startup 和 port 仍须按芯片选择，不能沿用旧来源索引中漏列 CH32V20x 的结论。
 
-## Topic Cross-References
+## 主题交叉引用
 
-- Common peripheral rules: `Doc/HAL/wch-hal-normalization.md`.
-- Startup/linker/interrupt rules: `Doc/Core/wch-core-notes.md`.
-- Project templates: `Doc/Templates/wch-project-template-notes.md`.
-- Ethernet: `Doc/ETH/wch-ethernet-notes.md`.
-- USB: `Doc/USB/wch-usb-notes.md`.
-- CAN/I2S/DVP: `Doc/IO/wch-io-media-notes.md`.
-- SDIO/storage: `Doc/Storage/wch-storage-notes.md`.
-- IAP: `Doc/IAP/wch-iap-ota-notes.md`.
-- RTOS: `Doc/RTOS/wch-rtos-notes.md`.
+- 通用外设规则：`Doc/HAL/wch-hal-normalization.md`。
+- 启动代码/链接器/中断规则：`Doc/Core/wch-core-notes.md`。
+- 工程模板：`Doc/Templates/wch-project-template-notes.md`。
+- 以太网：`Doc/ETH/wch-ethernet-notes.md`。
+- USB：`Doc/USB/wch-usb-notes.md`。
+- CAN/I2S/DVP：`Doc/IO/wch-io-media-notes.md`。
+- SDIO/存储：`Doc/Storage/wch-storage-notes.md`。
+- IAP：`Doc/IAP/wch-iap-ota-notes.md`。
+- RTOS：`Doc/RTOS/wch-rtos-notes.md`。
 
-## Known Family Pitfalls
+## 已知系列陷阱
 
-- Peripheral clocks must be enabled on the correct bus before register access.
-- Alternate-function GPIO modes must be selected before enabling peripheral signals.
-- I2C examples require event checks at each bus phase; skipping them causes hangs or garbage transfers.
-- CAN receive requires filter configuration; no filter means incoming messages can be rejected.
-- ADC calibration is required before accurate conversion.
-- `printf()` requires retargeting through `_write()` or equivalent debug helper.
-- Ethernet, USB, SDIO, DVP, and large DMA buffers should not be allocated on small stacks.
-- Do not assume CH32V103/V20x/V307/V407 have identical high-speed peripheral sets.
+- 访问寄存器前，必须在正确的总线上启用外设时钟。
+- 启用外设信号前，必须选择复用功能 GPIO 模式。
+- I2C 示例要求在每个总线阶段检查事件；跳过检查会导致挂起或传输无效数据。
+- 对确有 CAN 驱动和示例的目标，CAN 接收需要配置滤波器；不要将此规则反推为 CH32V103 已支持 CAN。
+- 准确转换前需要校准 ADC。
+- `printf()` 需要通过 `_write()` 或等效调试辅助程序重定向。
+- 以太网、USB、SDIO、DVP 和大型 DMA 缓冲区不应分配在小栈上。
+- 不要假设 CH32V103/V20x/V307/V407 具有相同的高速外设集合。
 
-## Verification Checklist
+## 验证清单
 
-- Verify each subfamily EVT root and exact example paths for GPIO, USART, ADC, Timer, Flash, DMA, USB, CAN, ETH, SDIO, IAP, and RTOS.
-- Verify header prefix, startup file, system file, linker script, `*_conf.h`, and interrupt handler names per subfamily.
-- Verify Flash/RAM size and package-specific peripheral availability against DS/RM.
-- Verify IAP linker offsets and vector relocation functions against the selected IAP EVT example.
-- Verify high-speed peripheral buffer placement and DMA requirements from active headers and examples.
+- 验证每个子系列的 EVT 根目录，以及 GPIO、USART、ADC、定时器、Flash、DMA、USB、CAN、ETH、SDIO、IAP 和 RTOS 的确切示例路径。
+- 按子系列验证头文件前缀、启动代码文件、系统文件、链接脚本、`*_conf.h` 和中断处理程序名称。
+- 根据 DS/RM 验证 Flash/RAM 大小和封装专用外设的可用性。
+- 根据所选 IAP EVT 示例验证 IAP 链接器偏移和向量重定位函数。
+- 根据当前头文件和示例验证高速外设缓冲区放置位置和 DMA 要求。
 
-## Verification Status
+## 验证状态
 
-- Extracted from `Doc/Ref/wch-dev-skill` Markdown sources and repository topic notes listed above.
-- Not fully verified against all CH32V103/V20x/V307/V407 EVT trees, RM, DS, project files, startup files, linker scripts, packages, or board schematics in this pass.
-- Treat feature availability and memory values as leads until checked against the exact target chip and official EVT material.
+- 根据 `Doc/Ref/wch-dev-skill` Markdown 源和上述仓库主题说明提取。
+- 本轮尚未针对所有 CH32V103/V20x/V307/V407 EVT 树、RM、DS、工程文件、启动代码文件、链接脚本、封装或开发板原理图进行完整验证。
+- 在根据确切目标芯片和官方 EVT 资料完成核查前，应将功能可用性和内存值视为线索。

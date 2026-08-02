@@ -1,10 +1,10 @@
-# CH56x Ethernet Family Notes
+# CH56x 以太网系列说明
 
-This document extracts CH569 / CH56x guidance from `Doc/Ref/wch-dev-skill` into repository-specific normalization notes for Ethernet, USB3, eMMC, HSPI, ECDC, DVP, storage, and high-speed template work.
+本文档从 `Doc/Ref/wch-dev-skill` 提取 CH569 / CH56x 指导，形成针对以太网、USB3、eMMC、HSPI、ECDC、DVP、存储和高速模板工作的仓库专用归一化说明。
 
-Official EVT examples, RM, DS, startup files, linker scripts, board schematics, PHY/storage/camera datasheets, and current repository source remain the final authority.
+官方 EVT 示例、RM、DS、启动代码文件、链接脚本、开发板原理图、PHY/存储/摄像头数据手册和当前仓库源代码仍是最终依据。
 
-## Source Files
+## 源文件
 
 - `Doc/Ref/wch-dev-skill/chips/ch56x-ethernet/resources/memory_layout.md`
 - `Doc/Ref/wch-dev-skill/chips/ch56x-ethernet/resources/example_list.md`
@@ -14,83 +14,83 @@ Official EVT examples, RM, DS, startup files, linker scripts, board schematics, 
 - `Doc/Family/family-routing.md`
 - `Doc/Family/family-normalization-notes.md`
 
-## Supported Chips And EVT Roots
+## 支持的芯片和 EVT 根目录
 
-| Family | Repository EVT root | Architecture | Notes |
+| 系列 | 仓库 EVT 根目录 | 架构 | 说明 |
 |---|---|---|---|
-| CH569 / CH56x | `CH569EVT/` | RISC-V, MounRiver | Source family covers CH569 high-speed peripherals. CH561/CH563 are ARM7TDMI and must use `Doc/Family/ch561-ch563` material in a future pass. |
+| CH569 / CH56x | `CH569EVT/` | RISC-V、MounRiver | 源系列涵盖 CH569 高速外设。CH561/CH563 是 ARM7TDMI，未来处理时必须使用 `Doc/Family/ch561-ch563` 资料。 |
 
-## Architecture, Toolchain, Startup, Linker
+## 架构、工具链、启动代码、链接器
 
-- Toolchain: MounRiver Studio project files with `CH56x_common.h` and shared `EXAM/SRC` resources.
-- Shared source roots from source notes: `SRC/Peripheral`, `SRC/Startup`, `SRC/Ld`, `SRC/RVMSIS`, and `SRC/Flash_Lib`.
-- Clock rule: source pitfalls require `SystemInit(CLK_SOURCE_PLL_120MHz)` before delay and peripheral init for correct UART/timer timing.
-- Debug rule: UART0 is the common printf path in source templates; debug UART selection may be controlled by `CH56x_common.h` defines.
+- 工具链：带 `CH56x_common.h` 和共享 `EXAM/SRC` 资源的 MounRiver Studio 工程文件。
+- 源说明中的共享源根目录：`SRC/Peripheral`、`SRC/Startup`、`SRC/Ld`、`SRC/RVMSIS` 和 `SRC/Flash_Lib`。
+- 时钟规则：源陷阱要求在延时和外设初始化前调用 `SystemInit(CLK_SOURCE_PLL_120MHz)`，以确保 UART/定时器时序正确。
+- 调试规则：UART0 是源模板中的通用 printf 路径；调试 UART 的选择可能由 `CH56x_common.h` 中的定义控制。
 
-## Memory And DMA Layout
+## 内存和 DMA 布局
 
-The defining CH56x constraint is RAM vs RAMX.
+CH56x 的决定性约束是 RAM 与 RAMX 的区别。
 
-| Region | Source-note address | Size | Use |
+| 区域 | 源说明地址 | 大小 | 用途 |
 |---|---:|---:|---|
-| Flash | `0x00000000` | 448 KB code plus last ~64 KB data area | Program, constants, bootloader/app/data partitions. |
-| RAM | `0x20000000` | 16 KB | General data, stack, `.data`, `.bss`; not DMA-accessible in source notes. |
-| RAMX | `0x20020000` | 32 KB | `.dmadata`, `.highcode`, DMA buffers, fast ISR code, ECDC/ETH/eMMC buffers. |
+| Flash | `0x00000000` | 448 KB 代码区及末尾约 64 KB 数据区 | 程序、常量、引导加载程序/应用/数据分区。 |
+| RAM | `0x20000000` | 16 KB | 通用数据、栈、`.data`、`.bss`；源说明中 DMA 不可访问。 |
+| RAMX | `0x20020000` | 32 KB | `.dmadata`、`.highcode`、DMA 缓冲区、快速 ISR 代码、ECDC/ETH/eMMC 缓冲区。 |
 
-Rules:
+规则：
 
-- Place Ethernet, eMMC, SPI/HSPI, and other DMA buffers in `.dmadata` in RAMX.
-- Keep time-critical ISRs or fast code in `.highcode` when latency matters.
-- Avoid large local buffers because the default stack is small and regular RAM is only 16 KB.
-- Flash erase granularity is 256 bytes and write granularity is 4 bytes according to source notes.
-- IAP source layout uses a 4 KB bootloader, app at `0x1000`, download buffer around `0x40000`, and data storage near `0x70000`; verify exact EVT linker before use.
+- 将以太网、eMMC、SPI/HSPI 和其他 DMA 缓冲区放入 RAMX 的 `.dmadata`。
+- 对延迟敏感时，将时序关键的 ISR 或快速代码放入 `.highcode`。
+- 避免使用大型局部缓冲区，因为默认栈较小，常规 RAM 仅有 16 KB。
+- 根据源说明，Flash 擦除粒度为 256 字节，写入粒度为 4 字节。
+- IAP 源布局使用 4 KB 引导加载程序，应用位于 `0x1000`，下载缓冲区约位于 `0x40000`，数据存储区靠近 `0x70000`；使用前需验证确切的 EVT 链接器配置。
 
-## Peripheral And Example Coverage
+## 外设和示例覆盖范围
 
-Source examples include:
+源示例包括：
 
-- Ethernet: WCHNET TCP client/server, UDP client/server, DHCP, DNS, raw IP ping, MAC raw, and ETH source examples.
-- USB3: USBSS device and host examples.
-- HSPI: normal mode, burst mode, dynamic up/down role switch, double-DMA mode, and HSPI with ECDC.
-- ECDC: AES/SM4 hardware encryption/decryption.
-- DVP: OV2640-style camera capture.
-- Storage: SD, eMMC, and eMMC with AES-related source notes.
-- Common peripherals: GPIO, UART0-3, SPI0/1, TMR0-2, PWMX, Flash, IAP, BUS8, option bytes, low power.
+- 以太网：WCHNET TCP 客户端/服务器、UDP 客户端/服务器、DHCP、DNS、原始 IP ping、MAC raw 和 ETH 源示例。
+- USB3：USBSS 设备和主机示例。
+- HSPI：普通模式、突发模式、动态上下行角色切换、双 DMA 模式以及搭配 ECDC 的 HSPI。
+- ECDC：AES/SM4 硬件加密/解密。
+- DVP：OV2640 风格的摄像头采集。
+- 存储：SD、eMMC 以及源说明中与 AES 相关的 eMMC。
+- 通用外设：GPIO、UART0-3、SPI0/1、TMR0-2、PWMX、Flash、IAP、BUS8、选项字节、低功耗。
 
-## Topic Cross-References
+## 主题交叉引用
 
-- Ethernet/WCHNET: `Doc/ETH/wch-ethernet-notes.md`.
-- USB3/USB HS: `Doc/USB/wch-usb-notes.md`.
-- Storage/eMMC/HSPI: `Doc/Storage/wch-storage-notes.md`.
-- ECDC/security: `Doc/Security/wch-security-crypto-notes.md`.
-- DVP camera and streaming IO: `Doc/IO/wch-io-media-notes.md`.
-- BUS8/PWMX/HMI-specialty: `Doc/HMI/wch-hmi-specialty-notes.md`.
-- Project templates: `Doc/Templates/wch-project-template-notes.md`.
-- IAP and Flash layout: `Doc/IAP/wch-iap-ota-notes.md`.
+- 以太网/WCHNET：`Doc/ETH/wch-ethernet-notes.md`。
+- USB3/USB HS：`Doc/USB/wch-usb-notes.md`。
+- 存储/eMMC/HSPI：`Doc/Storage/wch-storage-notes.md`。
+- ECDC/安全：`Doc/Security/wch-security-crypto-notes.md`。
+- DVP 摄像头和流式 IO：`Doc/IO/wch-io-media-notes.md`。
+- BUS8/PWMX/HMI 专用功能：`Doc/HMI/wch-hmi-specialty-notes.md`。
+- 工程模板：`Doc/Templates/wch-project-template-notes.md`。
+- IAP 和 Flash 布局：`Doc/IAP/wch-iap-ota-notes.md`。
 
-## Known Family Pitfalls
+## 已知系列陷阱
 
-- DMA buffers in normal RAM cause Ethernet/eMMC/SPI DMA hangs or corruption; use RAMX `.dmadata`.
-- Peripheral clocks are gated by default; enable `BIT_SLP_CLK_*` for ETH, UART, SPI, TMR, EMMC, USBSS, ECDC, etc.
-- CH561/CH563 are ARM7TDMI and cannot compile CH569 RISC-V code or use CH569 APIs directly.
-- Flash sector erase destroys the whole 256-byte sector; partial writes require read-modify-write.
-- Interrupt handlers may need `.highcode`/RAMX placement for latency.
-- Ethernet PHY failures require checking PHY address, MDC/MDIO remap, power, reset, and 25 MHz clock.
-- ECDC key registers must be initialized before use.
-- eMMC buffers need at least word alignment and DMA-accessible placement.
-- GPIO pin remap conflicts must be resolved before mixing GPIO and peripheral signals.
+- 普通 RAM 中的 DMA 缓冲区会导致以太网/eMMC/SPI DMA 挂起或数据损坏；应使用 RAMX `.dmadata`。
+- 外设时钟默认关闭；应为 ETH、UART、SPI、TMR、EMMC、USBSS、ECDC 等启用 `BIT_SLP_CLK_*`。
+- CH561/CH563 是 ARM7TDMI，无法编译 CH569 RISC-V 代码或直接使用 CH569 API。
+- Flash 扇区擦除会破坏整个 256 字节扇区；局部写入需要读取-修改-写入。
+- 为降低延迟，中断处理程序可能需要放置在 `.highcode`/RAMX 中。
+- 以太网 PHY 故障排查需检查 PHY 地址、MDC/MDIO 重映射、电源、复位和 25 MHz 时钟。
+- 使用前必须初始化 ECDC 密钥寄存器。
+- eMMC 缓冲区至少需要字对齐，并放置在 DMA 可访问区域。
+- 混用 GPIO 和外设信号前，必须解决 GPIO 引脚重映射冲突。
 
-## Verification Checklist
+## 验证清单
 
-- Verify `CH569EVT/EVT/EXAM` categories and exact example paths for ETH, USBSS, HSPI, ECDC, DVP, SD, EMMC, IAP, and common peripherals.
-- Verify `Link.ld` RAM/RAMX sections, `.dmadata`, `.highcode`, stack size, and Flash partition layout.
-- Verify WCHNET library requirements, periodic task behavior, PHY interface, DMA descriptor placement, and board PHY address.
-- Verify USBSS/USBHS controller instance, endpoint/buffer constraints, and host/device examples.
-- Verify ECDC test vectors, key/counter handling, RAMX length units, and HSPI-linked DMA mode.
-- Verify eMMC/SD block size, alignment, bus width, and encrypted-transfer examples.
+- 验证 `CH569EVT/EXAM` 分类，以及 ETH、USBSS、HSPI、ECDC、DVP、SD、EMMC、IAP 和通用外设的确切示例路径。
+- 验证 `Link.ld` RAM/RAMX 段、`.dmadata`、`.highcode`、栈大小和 Flash 分区布局。
+- 验证 WCHNET 库要求、周期任务行为、PHY 接口、DMA 描述符放置位置和开发板 PHY 地址。
+- 验证 USBSS/USBHS 控制器实例、端点/缓冲区约束及主机/设备示例。
+- 验证 ECDC 测试向量、密钥/计数器处理、RAMX 长度单位和 HSPI 关联的 DMA 模式。
+- 验证 eMMC/SD 块大小、对齐、总线宽度和加密传输示例。
 
-## Verification Status
+## 验证状态
 
-- Extracted from `Doc/Ref/wch-dev-skill` Markdown sources and repository topic notes listed above.
-- Not fully verified against CH569 EVT source trees, RM, DS, project files, startup files, linker scripts, board schematics, PHY datasheets, storage datasheets, or camera datasheets in this pass.
-- Treat memory layout, DMA constraints, clocks, and feature availability as preliminary until checked against official CH569 material and active headers.
+- 根据 `Doc/Ref/wch-dev-skill` Markdown 源和上述仓库主题说明提取。
+- 本轮尚未针对 CH569 EVT 源代码树、RM、DS、工程文件、启动代码文件、链接脚本、开发板原理图、PHY 数据手册、存储器件数据手册或摄像头数据手册进行完整验证。
+- 在根据官方 CH569 资料和当前头文件完成核查前，应将内存布局、DMA 约束、时钟和功能可用性视为初步信息。
