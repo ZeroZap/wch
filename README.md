@@ -98,6 +98,7 @@ HAL 统一时以 `Doc/DS`、`Doc/RM` 和官方 EVT 源码为事实来源；`Doc/
 | USB-PD / Type-C / PIOC | `Doc/USBPD/wch-usbpd-notes.md` | 已提取，待 USB-PD EVT、芯片头文件和板级 VDD/CC 设计验证 |
 | Display / HMI / specialty | `Doc/HMI/wch-hmi-specialty-notes.md` | 已提取，待 LCD/TouchKey/KEYSCAN/外部总线和板级时序验证 |
 | IAP / OTA / bootloader | `Doc/IAP/wch-iap-ota-notes.md` | 已提取，待 Flash 布局、启动跳转和链接脚本验证 |
+| CH32 APP 跳转指导书 | `Doc/IAP/ch32-app-jump-guide.md` | 已对照 CH32V/CH32X EVT 的 RISC-V 软件中断跳转方式整理 |
 | RTOS | `Doc/RTOS/wch-rtos-notes.md` | 已提取，待 RTOS EVT、kernel config、tick 和栈/堆配置验证 |
 | IO / audio / CAN / camera | `Doc/IO/wch-io-media-notes.md` | 已提取，待 CAN、I2S/SAI、DVP EVT、板级和外部器件验证 |
 | Storage interfaces | `Doc/Storage/wch-storage-notes.md` | 已提取，待 SD/eMMC/QSPI/HSPI EVT、板级和器件数据手册验证 |
