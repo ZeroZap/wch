@@ -21,7 +21,9 @@ run() {
         data=$2
         bss=$3
         flash=$((text + data))
-        ram=$((data + bss + 2048))          # include the 2K stack
+        # riscv-none-embed-size folds the NOBITS .stack section (2K) into bss,
+        # so data+bss already includes the stack -- do not add it again.
+        ram=$((data + bss))
         printf 'flash=%5d B (%2d%%)  ram=%5d B (%2d%%)  free: flash %d KB / ram %d KB\n' \
             "$flash" "$((flash * 100 / 63488))" \
             "$ram" "$((ram * 100 / 16384))" \

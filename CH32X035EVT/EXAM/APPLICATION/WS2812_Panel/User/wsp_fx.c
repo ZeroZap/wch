@@ -185,7 +185,7 @@ static void fx_wipe(wsp_seg_t *s, uint32_t now)
     }
 
     for (pos = 0; pos < cells; pos++) {
-        seg_put(s, seg_cell_at(s, pos), (pos <= head) ? s->colors[0] : s->colors[1]);
+        seg_put(s, pos, (pos <= head) ? s->colors[0] : s->colors[1]);
     }
 }
 
@@ -207,7 +207,7 @@ static void fx_scanner(wsp_seg_t *s, uint32_t now)
         } else {
             color = s->colors[1];
         }
-        seg_put(s, seg_cell_at(s, pos), color);
+        seg_put(s, pos, color);
     }
 }
 
@@ -219,7 +219,7 @@ static void fx_theater_chase(wsp_seg_t *s, uint32_t now)
 
     for (pos = 0; pos < cells; pos++) {
         uint8_t on = (((pos + step) % 3u) == 0) ? 1 : 0;
-        seg_put(s, seg_cell_at(s, pos), on ? s->colors[0] : s->colors[1]);
+        seg_put(s, pos, on ? s->colors[0] : s->colors[1]);
     }
 }
 
@@ -236,7 +236,7 @@ static void fx_running_dot(wsp_seg_t *s, uint32_t now)
     head = (uint16_t)(seg_step(s, now) % cells);
 
     for (pos = 0; pos < cells; pos++) {
-        seg_put(s, seg_cell_at(s, pos), (pos == head) ? s->colors[0] : s->colors[1]);
+        seg_put(s, pos, (pos == head) ? s->colors[0] : s->colors[1]);
     }
 }
 
@@ -338,7 +338,7 @@ static void fx_gradient(wsp_seg_t *s, uint32_t now)
 
     for (pos = 0; pos < cells; pos++) {
         t = (uint16_t)(((uint32_t)pos * 255u) / cells + step * 8u);
-        seg_put(s, seg_cell_at(s, pos),
+        seg_put(s, pos,
                 fx_mix565(s->colors[0], s->colors[1], (uint8_t)t));
     }
 }

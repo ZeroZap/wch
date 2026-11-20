@@ -67,8 +67,11 @@ void      seg_reset_time(uint32_t now_ms);
 
 /* ---- used by the effect library ---------------------------------------- */
 uint16_t  seg_cells(const wsp_seg_t *s);
-uint16_t  seg_cell_at(const wsp_seg_t *s, uint16_t pos);   /* honours reverse */
 void      seg_cell_xy(const wsp_seg_t *s, uint16_t cell, uint16_t *lx, uint16_t *ly);
+
+/* Put one cell.  This is the single place that honours s->reverse (strip
+ * segments mirror around start+len), so effects must pass the plain position
+ * and never pre-reverse it themselves. */
 void      seg_put(const wsp_seg_t *s, uint16_t cell, uint16_t color565);
 
 uint16_t  seg_period_ms(const wsp_seg_t *s);               /* 60..2000 ms */

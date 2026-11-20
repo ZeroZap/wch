@@ -154,26 +154,6 @@ uint16_t seg_cells(const wsp_seg_t *s)
 }
 
 /*********************************************************************
- * @fn      seg_cell_at
- *
- * @brief   Map a logical position to a cell, honouring "reverse".
- *
- * @return  cell index.
- */
-uint16_t seg_cell_at(const wsp_seg_t *s, uint16_t pos)
-{
-    uint16_t cells = seg_cells(s);
-
-    if (cells == 0) {
-        return 0;
-    }
-
-    pos = (uint16_t)(pos % cells);
-
-    return s->reverse ? (uint16_t)(cells - 1u - pos) : pos;
-}
-
-/*********************************************************************
  * @fn      seg_cell_xy
  *
  * @brief   Cell -> local (x, y) inside a rect segment.
