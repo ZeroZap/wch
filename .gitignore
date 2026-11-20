@@ -2,13 +2,37 @@
 # ZeroZap Organization
 
 # ===========================================================================
-# Build artifacts
+# Build output directories
 # ===========================================================================
 build/
+build-*/
 obj/
+obj-*/
+out/
 output/
+cmake-build-*/
+**/generated/
+**/docs/generated/
+
+# ===========================================================================
+# Compiler / linker intermediates
+# ===========================================================================
 *.o
 *.obj
+*.d
+*.su
+*.i
+*.ii
+*.gcda
+*.gcno
+*.gcov
+
+# ===========================================================================
+# Libraries and firmware images
+# NOTE: vendor prebuilt *.a / *.hex / *.bin (BLE / USB / ETH / motor libs and
+# ROM images) are ignored on purpose too. Restore them locally if an example
+# needs to link them.
+# ===========================================================================
 *.a
 *.lib
 *.so
@@ -17,30 +41,59 @@ output/
 *.bin
 *.hex
 *.elf
+*.axf
 *.out
 *.exe
 *.map
 *.lst
 
 # ===========================================================================
-# IDE files
+# MounRiver Studio (MRS) / Eclipse generated project metadata
+# NOTE: .cproject / .project / *.wvproj / *.wvsln are source files and stay tracked.
+# ===========================================================================
+.settings/
+.metadata/
+RemoteSystemsTempFiles/
+*.launch
+*.mrs
+*.mrsproj
+.rst*
+
+# ===========================================================================
+# Other IDE files
 # ===========================================================================
 .vscode/
 .idea/
+.history/
 *.swp
 *.swo
 *.bak
-*.tmp
-*.cache
 *.uvproj*
 *.uvopt*
 *.Keil*
 *.IAR*
 
-# MRS IDE (MounRiver Studio)
-*.mrs
-*.mrsproj
-.rst*
+# ===========================================================================
+# CMake / ninja / clangd generated files
+# ===========================================================================
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+.ninja_deps
+.ninja_log
+compile_commands.json
+.cache/
+
+# ===========================================================================
+# Python generated files (example helper tools)
+# ===========================================================================
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
 
 # ===========================================================================
 # Logs and temp files
@@ -48,15 +101,13 @@ output/
 *.log
 logs/
 *.tmp
+*.orig
+*.rej
 *~
-.DS_Store
-Thumbs.db
-
-# ===========================================================================
-# Generated files
-# ===========================================================================
-**/generated/
-**/docs/generated/
+.dsh-tmp/
+core
+core.*
+*.stackdump
 
 # ===========================================================================
 # OS-specific files
@@ -67,4 +118,5 @@ Thumbs.db
 .Spotlight-V100
 .Trashes
 ehthumbs.db
+Thumbs.db
 Desktop.ini
