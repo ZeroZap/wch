@@ -29,6 +29,7 @@ https://wch.cn
   |      |      |      |      |-- ExtLines_Trigger：外部触发ADC转换例程
   |      |      |      |-- APPLICATION
   |      |      |      |      |-- WS2812_LED：通过SPI\PWM操作WS2812例程
+  |      |      |      |      |-- WS2812_Panel：蛇形WS2812灯带点阵，播放图片/动图，支持外部NOR Flash
   |      |      |      |-- DMA
   |      |      |      |      |-- DMA_MEM2MEM：储存器到储存器模式例程
   |      |      |      |      |-- DMA_MEM2PERIP：储存器到外设模式、外设到储存器模式例程见各外设子例程

@@ -1,0 +1,7 @@
+# Project-local build output.  The repository root .gitignore already covers
+# build/, obj/ and *.elf/*.hex/*.map globally; these entries keep it obvious
+# for anyone working inside this example only.
+build/
+obj/
+*.pyc
+__pycache__/
