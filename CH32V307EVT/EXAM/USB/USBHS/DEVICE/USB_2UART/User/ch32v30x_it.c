@@ -1,0 +1,23 @@
+/********************************** (C) COPYRIGHT *******************************
+ * File Name          : ch32v30x_it.c
+ * Description        : Core exception handlers.
+ *******************************************************************************/
+#include "ch32v30x_it.h"
+
+void NMI_Handler(void) __attribute__((interrupt("WCH-Interrupt-fast")));
+void HardFault_Handler(void) __attribute__((interrupt("WCH-Interrupt-fast")));
+
+void NMI_Handler(void)
+{
+    while(1)
+    {
+    }
+}
+
+void HardFault_Handler(void)
+{
+    NVIC_SystemReset();
+    while(1)
+    {
+    }
+}

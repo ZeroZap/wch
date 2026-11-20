@@ -1,0 +1,153 @@
+; USB_2UART.inf
+; Binds the eight CH32V307 CDC interfaces to usbser.sys and gives each COM
+; device a stable, interface-specific FriendlyName.
+;
+; Production deployment on 64-bit Windows requires a signed driver package.
+
+[Version]
+Signature   = "$Windows NT$"
+Class       = Ports
+ClassGuid   = {4D36E978-E325-11CE-BFC1-08002BE10318}
+Provider    = %ProviderName%
+DriverVer   = 10/11/2026,1.0.0.0
+CatalogFile = USB_2UART.cat
+PnpLockdown = 1
+
+[Manufacturer]
+%ManufacturerName% = DeviceList,NTamd64,NTarm64
+
+[DeviceList.NTamd64]
+%PortA.DeviceDesc% = PortA_Install, USB\VID_1A86&PID_FE18&MI_00
+%PortB.DeviceDesc% = PortB_Install, USB\VID_1A86&PID_FE18&MI_02
+%PortC.DeviceDesc% = PortC_Install, USB\VID_1A86&PID_FE18&MI_04
+%PortD.DeviceDesc% = PortD_Install, USB\VID_1A86&PID_FE18&MI_06
+%PortE.DeviceDesc% = PortE_Install, USB\VID_1A86&PID_FE18&MI_08
+%PortF.DeviceDesc% = PortF_Install, USB\VID_1A86&PID_FE18&MI_0A
+%PortG.DeviceDesc% = PortG_Install, USB\VID_1A86&PID_FE18&MI_0C
+%PortH.DeviceDesc% = PortH_Install, USB\VID_1A86&PID_FE18&MI_0E
+
+[DeviceList.NTarm64]
+%PortA.DeviceDesc% = PortA_Install, USB\VID_1A86&PID_FE18&MI_00
+%PortB.DeviceDesc% = PortB_Install, USB\VID_1A86&PID_FE18&MI_02
+%PortC.DeviceDesc% = PortC_Install, USB\VID_1A86&PID_FE18&MI_04
+%PortD.DeviceDesc% = PortD_Install, USB\VID_1A86&PID_FE18&MI_06
+%PortE.DeviceDesc% = PortE_Install, USB\VID_1A86&PID_FE18&MI_08
+%PortF.DeviceDesc% = PortF_Install, USB\VID_1A86&PID_FE18&MI_0A
+%PortG.DeviceDesc% = PortG_Install, USB\VID_1A86&PID_FE18&MI_0C
+%PortH.DeviceDesc% = PortH_Install, USB\VID_1A86&PID_FE18&MI_0E
+
+[PortA_Install.NT]
+Include = mdmcpq.inf
+Needs   = UsbSer_Install.NT
+AddReg  = PortA_AddReg
+
+[PortB_Install.NT]
+Include = mdmcpq.inf
+Needs   = UsbSer_Install.NT
+AddReg  = PortB_AddReg
+
+[PortC_Install.NT]
+Include = mdmcpq.inf
+Needs   = UsbSer_Install.NT
+AddReg  = PortC_AddReg
+
+[PortD_Install.NT]
+Include = mdmcpq.inf
+Needs   = UsbSer_Install.NT
+AddReg  = PortD_AddReg
+
+[PortE_Install.NT]
+Include = mdmcpq.inf
+Needs   = UsbSer_Install.NT
+AddReg  = PortE_AddReg
+
+[PortF_Install.NT]
+Include = mdmcpq.inf
+Needs   = UsbSer_Install.NT
+AddReg  = PortF_AddReg
+
+[PortG_Install.NT]
+Include = mdmcpq.inf
+Needs   = UsbSer_Install.NT
+AddReg  = PortG_AddReg
+
+[PortH_Install.NT]
+Include = mdmcpq.inf
+Needs   = UsbSer_Install.NT
+AddReg  = PortH_AddReg
+
+[PortA_Install.NT.Services]
+Include = mdmcpq.inf
+Needs   = UsbSer_Install.NT.Services
+
+[PortB_Install.NT.Services]
+Include = mdmcpq.inf
+Needs   = UsbSer_Install.NT.Services
+
+[PortC_Install.NT.Services]
+Include = mdmcpq.inf
+Needs   = UsbSer_Install.NT.Services
+
+[PortD_Install.NT.Services]
+Include = mdmcpq.inf
+Needs   = UsbSer_Install.NT.Services
+
+[PortE_Install.NT.Services]
+Include = mdmcpq.inf
+Needs   = UsbSer_Install.NT.Services
+
+[PortF_Install.NT.Services]
+Include = mdmcpq.inf
+Needs   = UsbSer_Install.NT.Services
+
+[PortG_Install.NT.Services]
+Include = mdmcpq.inf
+Needs   = UsbSer_Install.NT.Services
+
+[PortH_Install.NT.Services]
+Include = mdmcpq.inf
+Needs   = UsbSer_Install.NT.Services
+
+[PortA_AddReg]
+HKR,,FriendlyName,0x00000000,%PortA.FriendlyName%
+
+[PortB_AddReg]
+HKR,,FriendlyName,0x00000000,%PortB.FriendlyName%
+
+[PortC_AddReg]
+HKR,,FriendlyName,0x00000000,%PortC.FriendlyName%
+
+[PortD_AddReg]
+HKR,,FriendlyName,0x00000000,%PortD.FriendlyName%
+
+[PortE_AddReg]
+HKR,,FriendlyName,0x00000000,%PortE.FriendlyName%
+
+[PortF_AddReg]
+HKR,,FriendlyName,0x00000000,%PortF.FriendlyName%
+
+[PortG_AddReg]
+HKR,,FriendlyName,0x00000000,%PortG.FriendlyName%
+
+[PortH_AddReg]
+HKR,,FriendlyName,0x00000000,%PortH.FriendlyName%
+
+[Strings]
+ProviderName       = "ZeroZap"
+ManufacturerName   = "ZeroZap"
+PortA.DeviceDesc   = "USB2UART-A"
+PortB.DeviceDesc   = "USB2UART-B"
+PortC.DeviceDesc   = "USB2UART-C"
+PortD.DeviceDesc   = "USB2UART-D"
+PortE.DeviceDesc   = "USB2UART-E"
+PortF.DeviceDesc   = "USB2UART-F"
+PortG.DeviceDesc   = "USB2UART-G"
+PortH.DeviceDesc   = "USB2UART-H"
+PortA.FriendlyName = "USB2UART-A"
+PortB.FriendlyName = "USB2UART-B"
+PortC.FriendlyName = "USB2UART-C"
+PortD.FriendlyName = "USB2UART-D"
+PortE.FriendlyName = "USB2UART-E"
+PortF.FriendlyName = "USB2UART-F"
+PortG.FriendlyName = "USB2UART-G"
+PortH.FriendlyName = "USB2UART-H"
