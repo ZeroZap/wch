@@ -63,25 +63,29 @@
 `PANEL_W` / `PANEL_H` / `STRIP_LEDS` 都可用编译宏覆盖（`STRIP_LEDS` 默认等于
 `PANEL_PIXELS`，即“整条灯带折成这个形状”）。实测数据（含 USB + gamma + 限流 + 字库）：
 
-| 尺寸      | 像素 | 单帧时长 | RAM（含 2K 栈） | 占用 | 剩余   |
-| --------- | ---- | -------- | --------------- | ---- | ------ |
-| 8×8       | 64   | 1.8 ms   | 8024 B          | 49%  | 8.2 KB |
-| 8×16      | 128  | 3.6 ms   | 8792 B          | 54%  | 7.4 KB |
-| 8×32      | 256  | 7.2 ms   | 10328 B         | 63%  | 5.9 KB |
-| **16×16** | 256  | 7.2 ms   | 10328 B         | 63%  | 5.9 KB |
-| 16×32     | 512  | 14.3 ms  | 13400 B         | 82%  | 2.9 KB |
-| 32×16     | 512  | 14.3 ms  | 13400 B         | 82%  | 2.9 KB |
+| 尺寸      | 像素 | 单帧时长 | RAM（含 2K 栈） | 占用 | 剩余    |
+| --------- | ---- | -------- | --------------- | ---- | ------- |
+| 8×8       | 64   | 1.8 ms   | 5980 B          | 36%  | 10.2 KB |
+| 8×16      | 128  | 3.6 ms   | 6748 B          | 41%  | 9.4 KB  |
+| 8×32      | 256  | 7.2 ms   | 8284 B          | 50%  | 7.9 KB  |
+| **16×16** | 256  | 7.2 ms   | 8284 B          | 50%  | 7.9 KB  |
+| 16×32     | 512  | 14.3 ms  | 11356 B         | 69%  | 4.9 KB  |
+| 32×16     | 512  | 14.3 ms  | 11356 B         | 69%  | 4.9 KB  |
 
 ```bash
 # 例：16×32
-sh build.sh -DPANEL_W=16 -DPANEL_H=32
+sh tools/build_cli.sh -DPANEL_W=16 -DPANEL_H=32
 # MRS：Project → Properties → C/C++ Build → Settings → Preprocessor Definitions
 ```
 
-- 上限是 **512 px**（`PANEL_PIXELS > 512` 直接 `#error`）；32×32=1024 px 还要再 4.6 KB RAM，
-  且刚好顶到 PIOC 3072 B 单帧上限，所以不支持；
+- **32×32（1024 px）不是硬拦截**，但 `.data+.bss` 会越过 2K 栈：先把
+  `-DIMG_SCRATCH_PIXELS=256` 降下来才链接得过（剩 424 B）；链接脚本里有
+  `ASSERT(_ebss <= RAM_END - 2K)`，真的溢出会直接报错而不会默默踩栈；
 - 角标会自适应：宽度 ≥11 列才显示两位帧率，8 列宽时只显示一位；高度 <7 时自动隐藏；
 - 宿主机单测对这 6 种尺寸全部跑通（映射/解码/缩放/段/效果/场景）。
+
+> 注：`riscv-none-embed-size` 的 `bss` 列**已包含 2K 栈**（`.stack` 是 NOBITS），
+> 所以 `data+bss` 就是总 RAM，不要再加一次栈。
 
 ### 颜色顺序（RGB / GRB / BRG）
 
@@ -235,6 +239,7 @@ flowchart TD
 | `wsp_font.c/.h`   | 5×7 点阵字库（45 字形，5 B/字形），由 `tools/gen_font.py` 生成                                                                                            |
 | `wsp_text.c/.h`   | 文字绘制：`text_draw()` / `text_char()` / `text_width()`                                                                                                  |
 | `wsp_osd.c/.h`    | 角标：帧率两位数字 + 限流红点，`WSP_OSD_ENABLE` 控编译，`WSP_OSD_DEFAULT` 控上电默认值                                                                    |
+| `wsp_trans.c/.h`  | fade-through-black 过渡（亮度坡度 + 重发画布，不占额外 RAM）                                                                                              |
 | `PINMUX.md`       | 原理图 / 引脚复用 / 网表 / 上电自检清单                                                                                                                   |
 | `main.c`          | 双模式状态机 + 按键交互 + 启动自检                                                                                                                        |
 
@@ -398,6 +403,22 @@ python wsp_cdc.py --port COM5 osd off    # 关掉
 实测（把 `panel_fb` 读回来还原成图）：USB 以 3fps 推黑帧时角标显示 **`02`**，
 STRIP 模式自己跑时显示 **`58`** 上下——和实测帧率一致。
 
+### 过渡动画
+
+内容切换（图片/动画/NOR/场景/STRIP 效果）时做一次 **fade through black**：
+WS2812 会锁存上一帧，所以每一步都要重发画布，这里直接用全局亮度做坡度：
+
+```c
+trans_fade_out(WSP_TRANS_MS);   /* 当前画面亮度 255→0，每组重发一帧 */
+draw_the_new_frame();
+trans_fade_in(WSP_TRANS_MS);    /* 0→255 */
+```
+
+- **不占 RAM**（不需要第二块画布），只多约 90ms 的发送时间；
+- 开关：`WSP_TRANSITION_ENABLE`（默认 1）、`WSP_TRANS_MS`（默认 160ms，分 8 步）；
+  关掉后 `trans_*` 变成空宏，调用点不用改；
+- 调试计数器 `g_trans_runs`（每执行一次坡度 +1），可用 WCH-Link 读回确认真的跑过。
+
 ### 抖动（`WSP_DITHER`，默认关）
 
 给旋转的 1/4 像素的占空比 +1，用来打散 gamma 量化在渐变上的色阶。
@@ -514,6 +535,7 @@ seg_colors(1, c0, c1, c2);
 | `build_cli.sh`   | CLI 构建（自带工具链探测），可传 `-D` 宏                                                                              |
 | `build_sizes.sh` | 一键编完 8×8 / 8×16 / 8×32 / 16×16 / 16×32 / 32×16 并打印占用                                                         |
 | `dump_panel.py`  | 从 WCH-Link 读回 `panel_fb` 存成 PNG                                                                                  |
+| `tests/run.sh`   | 宿主机单测：6 种尺寸各跑一遍（无需硬件、无需 RISC-V 工具链）                                                          |
 
 ```bash
 cd CH32X035EVT/EXAM/APPLICATION/WS2812_Panel/tools
@@ -550,7 +572,7 @@ python gen_gamma.py --gamma 2.8
 | 4    | 本地 NOR 播放     | `norflash.c`（W25Qxx/GD25Qxx 64KB~32MB）、NOR 数据源、自动探测与回退                          | ✅ 已上板验证（GD25Q40）  |
 | 5    | USB 实时送帧      | `usb_cdc.c`（CDC 设备层）、`wsp_usb.c`（帧协议）、`tools/wsp_cdc.py`                          | ✅ 已上板验证             |
 | 6    | USB 下发到 NOR    | `NOR_ERASE/WRITE/READ` 命令、`wsp_cdc.py nor-upload/nor-read`                                 | ✅ 已上板验证             |
-| 7    | 效果与优化        | Gamma（✅）、限流（✅）、文字/字符（✅）、**16 种效果（✅）**、抖动（代码就绪）、过渡动画     | ⏳ 部分完成               |
+| 7    | 效果与优化        | Gamma、限流、文字/角标、16 种效果、抖动（可选）、**过渡动画**                                 | ✅ 已完成                 |
 
 ### 各阶段验收标准
 
@@ -683,27 +705,28 @@ Windows 10/11 会自动装 `usbser.sys`（设备描述符里 `bDeviceClass=0x02`
 
 ## 8. 资源占用（16×16 默认配置）
 
-| 项目                                                     | 占用                                     |
-| -------------------------------------------------------- | ---------------------------------------- |
-| `panel_fb`（画布，`CANVAS_PIXELS`）                      | 768 B（16×16 与 256 灯带取大者）         |
-| `ws_buf`（RGB 帧缓冲）                                   | 768 B                                    |
-| `ws_gamma_table`（256 × u8，Flash）                      | 256 B                                    |
-| `duty_tab`（亮度+gamma 查表）                            | 256 B                                    |
-| `wsp_font_data` + index（Flash）                         | 225 B + 96 B                             |
-| OSD 状态（帧数/时间戳/fps）                              | ≈ 16 B                                   |
-| `panel_map`                                              | 512 B                                    |
-| `img_scratch`（1024 px）                                 | 2048 B                                   |
-| USB `payload_buf`                                        | 768 B                                    |
-| USB 端点缓冲 + 协议状态                                  | ≈ 240 B                                  |
-| 段表（8 段 × ≈36 B）                                     | ≈ 290 B                                  |
-| `fx_heat`（火焰热度场）                                  | 256 B                                    |
-| 读取缓冲 + 定时器/按键状态                               | < 200 B                                  |
-| 栈（`Ld/Link.ld`）                                       | 2048 B                                   |
-| **用户 RAM 合计**                                        | **≈ 8.1 KB + 2K 栈 / 16 KB（剩 ≈6 KB）** |
-| PIOC 代码 RAM                                            | 0x20004000..0x20004FFF（4KB，PIOC 独占） |
-| 内置素材（Flash）                                        | ≈ 1.8 KB                                 |
-| 效果库 + 分段引擎（Flash）                               | ≈ 5~7 KB                                 |
-| 代码（实测，含 USB CDC + gamma + 限流 + 字库 + 16 效果） | 26.0 KB / 62 KB（41%），剩余 ≈36 KB      |
+| 项目                                                            | 占用                                            |
+| --------------------------------------------------------------- | ----------------------------------------------- |
+| `panel_fb`（画布，`CANVAS_PIXELS`）                             | 768 B（16×16 与 256 灯带取大者）                |
+| `ws_buf`（RGB 帧缓冲）                                          | 768 B                                           |
+| `ws_gamma_table`（256 × u8，Flash）                             | 256 B                                           |
+| `duty_tab`（亮度+gamma 查表）                                   | 256 B                                           |
+| `wsp_font_data` + index（Flash）                                | 225 B + 96 B                                    |
+| OSD 状态（帧数/时间戳/fps）                                     | ≈ 16 B                                          |
+| `panel_map`                                                     | 512 B                                           |
+| `img_scratch`（1024 px）                                        | 2048 B                                          |
+| USB `payload_buf`                                               | 768 B                                           |
+| USB 端点缓冲 + 协议状态                                         | ≈ 240 B                                         |
+| 段表（8 段 × ≈36 B）                                            | ≈ 290 B                                         |
+| `fx_heat`（火焰热度场）                                         | 256 B                                           |
+| `wsp_trans` 状态（亮度/计数器）                                 | ≈ 8 B                                           |
+| 读取缓冲 + 定时器/按键状态                                      | < 200 B                                         |
+| 栈（`Ld/Link.ld`）                                              | 2048 B                                          |
+| **用户 RAM 合计**                                               | **8284 B / 16 KB（50%），含 2K 栈，剩 ≈7.9 KB** |
+| PIOC 代码 RAM                                                   | 0x20004000..0x20004FFF（4KB，PIOC 独占）        |
+| 内置素材（Flash）                                               | ≈ 1.8 KB                                        |
+| 效果库 + 分段引擎（Flash）                                      | ≈ 5~7 KB                                        |
+| 代码（实测，含 USB CDC + gamma + 限流 + 字库 + 16 效果 + 过渡） | 26.3 KB / 62 KB（41%），剩余 ≈36 KB             |
 
 刷新性能：256 px × 24 bit × 1.167µs ≈ **6.7ms/帧** + 0.29ms 锁存，理论 ~130fps，
 实际受解码/图片读取/效果运算影响，16×16 动画与效果建议 30~60fps。
@@ -735,6 +758,7 @@ sh tools/build_cli.sh -DPANEL_W=16 -DPANEL_H=32
 sh tools/build_cli.sh -DWSP_OSD_ENABLE=0 -DWS2812_GAMMA=0
 
 sh tools/build_sizes.sh                   # 一键编完所有尺寸并打印占用
+sh tests/run.sh                           # 宿主机单测，6 种尺寸各跑一遍
 ```
 
 工具链按以下顺序找，可用 `RISCV_GCC_BIN` 覆盖：

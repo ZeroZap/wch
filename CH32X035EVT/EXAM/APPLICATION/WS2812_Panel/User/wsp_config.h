@@ -34,10 +34,12 @@
 
 #define PANEL_PIXELS            (PANEL_W * PANEL_H)
 
-/* RAM budget is measured at 32x16 (512 px); a 32x32 panel needs ~4.6KB more
- * and only just fits in the 16KB user RAM, so it is deliberately blocked. */
+/* The framebuffers scale with PANEL_PIXELS, so a 32x32 (1024 px) panel eats
+ * ~4.6KB more RAM than 16x32.  It is allowed, but the .bss will usually no
+ * longer fit in the 16KB user RAM -- lower IMG_SCRATCH_PIXELS (e.g. 256) or
+ * shrink the strip to make room.  Kept as a warning so the linker decides. */
 #if (PANEL_PIXELS > 512)
-#error "PANEL_PIXELS > 512: framebuffers are sized for at most 512 px (8x64/16x32/32x16)"
+#warning "PANEL_PIXELS > 512: ~3KB more RAM per extra 256 px; lower IMG_SCRATCH_PIXELS if the link overflows"
 #endif
 
 /*---------------------------------------------------------------------------
@@ -172,6 +174,21 @@
 #define WSP_DITHER              0
 #endif
 
+/*---------------------------------------------------------------------------
+ * Fade-through-black transition around every demo content switch
+ *   WSP_TRANSITION_ENABLE : compile it in
+ *   WSP_TRANS_MS          : total ramp time, split over 8 steps
+ * Costs no RAM (the canvas is simply re-sent at a lower brightness), only a
+ * little flash and ~90ms of extra sending time per switch.
+ *---------------------------------------------------------------------------*/
+#ifndef WSP_TRANSITION_ENABLE
+#define WSP_TRANSITION_ENABLE   1
+#endif
+
+#ifndef WSP_TRANS_MS
+#define WSP_TRANS_MS            160
+#endif
+
 /* PIOC output pin:
  *   PC7 (default)  : PIOC IO0 via GPIO_Remap_PIOC, the SDI debug pins are
  *                    untouched, so WCH-Link debugging keeps working.
@@ -212,10 +229,14 @@
 /*---------------------------------------------------------------------------
  * Image player
  *   A frame of any size up to IMG_SCRATCH_PIXELS is decoded into a scratch
- *   buffer and then nearest-neighbour scaled to the panel. 16x16 needs
- *   512 bytes, 32x32 needs 2048 bytes of RAM.
+ *   buffer and then nearest-neighbour scaled to the panel.  16x16 needs
+ *   512 bytes (256 px), 32x32 needs 2048 bytes.  Lower it to "256" when a
+ *   larger panel leaves no room in the 16KB user RAM; sources are then
+ *   limited to 16x16.
  *---------------------------------------------------------------------------*/
+#ifndef IMG_SCRATCH_PIXELS
 #define IMG_SCRATCH_PIXELS      1024
+#endif
 
 /* PIOC shifts at most 3072 bytes per transfer (both modes) */
 #if ((PANEL_PIXELS * 3) > 3072) || ((STRIP_LEDS * 3) > 3072)

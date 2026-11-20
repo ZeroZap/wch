@@ -56,6 +56,9 @@
 #include "wsp_osd.h"
 #endif
 
+/* always included: it turns into no-op macros when WSP_TRANSITION_ENABLE=0 */
+#include "wsp_trans.h"
+
 #define ARRAY_SIZE(a)           (sizeof(a) / sizeof((a)[0]))
 
 #define DEMO_HOLD_MS            2500
@@ -202,7 +205,9 @@ static void panel_show_mem(const uint8_t *data, uint32_t size, uint32_t hold)
         return;
     }
 
+    trans_fade_out(WSP_TRANS_MS);
     img_show(&img, 0);
+    trans_fade_in(WSP_TRANS_MS);
     panel_wait(hold);
 }
 
@@ -247,13 +252,22 @@ static void panel_play_nor(void)
         return;
     }
 
+    trans_fade_out(WSP_TRANS_MS);
+
     for (f = 0; f < img.hdr.frames; f++) {
         if (img_show(&img, f) != IMG_OK) {
-            return;
+            break;
+        }
+        if (f == 0) {
+            trans_fade_in(WSP_TRANS_MS);
         }
         if (panel_wait(img.hdr.frame_ms ? img.hdr.frame_ms : 60)) {
             return;
         }
+    }
+
+    if (f == 0) {
+        trans_fade_in(WSP_TRANS_MS);   /* nothing decoded: do not stay black */
     }
 }
 #endif
@@ -370,7 +384,10 @@ static void run_strip_mode(void)
 
         if (button_short()) {
             index = (uint8_t)((index + 1u) % ARRAY_SIZE(strip_effects));
+            trans_fade_out(WSP_TRANS_MS);
             strip_apply(index);
+            seg_service(tick_ms());        /* draw the new effect */
+            trans_fade_in(WSP_TRANS_MS);
         }
 
         seg_service(tick_ms());
@@ -417,20 +434,29 @@ static void run_panel_mode(void)
 #endif
 
         case P_POINT:
+            trans_fade_out(WSP_TRANS_MS);
             seg_clear();
             seg_scene_point();
+            seg_service(tick_ms());
+            trans_fade_in(WSP_TRANS_MS);
             panel_run_segments(6000);
             break;
 
         case P_LINE:
+            trans_fade_out(WSP_TRANS_MS);
             seg_clear();
             seg_scene_line();
+            seg_service(tick_ms());
+            trans_fade_in(WSP_TRANS_MS);
             panel_run_segments(6000);
             break;
 
         case P_PLANE:
+            trans_fade_out(WSP_TRANS_MS);
             seg_clear();
             seg_scene_plane();
+            seg_service(tick_ms());
+            trans_fade_in(WSP_TRANS_MS);
             panel_run_segments(8000);
             break;
 

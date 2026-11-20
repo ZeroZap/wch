@@ -259,39 +259,40 @@ flowchart LR
 环境：**CH32X035C-R0-1V2（LQFP48）+ GD25Q40 + 5V 16×16 蛇形灯带**，
 WCH-LinkE（RV/SDI 模式）、MounRiver Studio 3 自带 `riscv-none-embed-gcc` 与 OpenOCD。
 
-固件占用（含 USB CDC + gamma + 限流 + 字库）：Flash **26036 B / 62K（41%）**，RAM **8280 B + 2K 栈 / 16K（63%）**。
+固件占用（含 USB CDC + gamma + 限流 + 字库 + 过渡）：Flash **26276 B / 62K（41%）**，RAM **8284 B / 16K（50%，含 2K 栈）**。
 
-| 项目           | 验证方法                                                  | 实测值                                                         | 结论                              |
-| -------------- | --------------------------------------------------------- | -------------------------------------------------------------- | --------------------------------- |
-| 烧录/校验      | OpenOCD `program … verify`                                | `device id 0x8c80abcd`，flash 62KB，Verified OK                | ✅                                |
-| NOR 识别       | 读回 `nor_id` / `nor_bytes`                               | `0x00C84013` / `0x00080000`                                    | ✅ GD25Q40 512KB                  |
-| NOR 擦写回读   | `nor_selftest()` 返回值                                   | `1`                                                            | ✅                                |
-| NOR 编程镜像   | `nor_write()` 后 memcmp                                   | 一致（`0`）                                                    | ✅ 偏移 0 写入 8 帧动画           |
-| 从 NOR 播放    | `nor_img_src()` + `img_open()`                            | `IMG_OK`，`frames=8`                                           | ✅                                |
-| 解码 + 画布    | `img_show()` 后读 `panel_fb`                              | `rc=0`，`px0=0xFFFFFF`                                         | ✅                                |
-| PIOC 波形      | `ws2812_last_error()`                                     | `0`（连续上百帧）                                              | ✅ 无 `1-wire error`              |
-| TIM3 1ms       | 读 `tick_counter_ms` 1000ms 前后                          | `0xD7F3 → 0xDBE4`（+1009）                                     | ✅ 误差 0.9%                      |
-| 主循环节拍     | 1000ms 内循环计数增量                                     | `+17`                                                          | ✅ 与 `Delay_Ms(50)`+7ms 发送吻合 |
-| 字节顺序       | 写入 `(0x11,0x22,0x33)` 后读回 `ws_buf`                   | `22 11 33`                                                     | ✅ GRB                            |
-| Gamma 表       | 写入 `(128,128,128)` 后读回 `ws_buf`                      | `25 25 25`（`gamma[128]=37`）                                  | ✅ γ=2.8 生效                     |
-| 顺序运行时切换 | USB `SET_ORDER 4` 后读回 `ws_order` + `INFO`              | `ws_order=0x04`，`INFO` 报 `RBG (4)`；`9` 被拒                 | ✅ RBG/RGB 等 6 种随时可切        |
-| 1-wire 速率    | USB `SET_CYC` / `CFG_SET`，读回 `RGB1W_Cyc` + `INFO`      | 56→1166ns，`rate 62`→1291ns；范围外被拒                        | ✅ 48~72 cyc 可调                 |
-| 设置持久化     | `config --rate 60` 后重启，`INFO`                         | NOR `0x7E000` = `57 43 46 47 3C 01 01 FF 00 54`，重启后仍报 60 | ✅ 掉电保持                       |
-| 颜色顺序       | 判色固件：满屏 R/G/B + 8 段色条                           | 与设计一致                                                     | ✅ 默认 GRB 正确                  |
-| 蛇形几何       | 判色固件：白边框 + 左上红/右上蓝角标                      | 完整矩形、角标位置正确                                         | ✅ 16×16 映射正确                 |
-| USART1         | 读 `STATR/BRR/CTLR1`                                      | `TXE\|TC=1`，`BRR=0x1A1`，`UE\|TE=1`                           | ⚠ 已发送，板上未接接收端          |
-| USB 枚举       | 主机侧 `VID:PID=1A86:FE0C`                                | 自动绑定 `usbser.sys`，生成 COM 口                             | ✅                                |
-| USB INFO       | `wsp_cdc.py info`                                         | `proto 1, 16x16, GRB, NOR 524288 B`                            | ✅                                |
-| USB 帧流       | 连续推 64 帧 RGB888 + 11 帧 RGB565 @16fps                 | `frames=75`，`crc_errors=0`，`len_errors=0`                    | ✅                                |
-| USB 写 NOR     | `nor-upload` 2048 B → 偏移 0x1000，再 `nor-dump`          | 回读与源文件 **逐字节一致**                                    | ✅ 阶段 6 上传通路                |
-| 限流（常态）   | 读回 `ws_scale` / `ws_was_limited`                        | `255` / `0`（demo 内容不超 8A）                                | ✅ 不干扰正常画面                 |
-| 限流（全白）   | 满屏白 + `limit 8000`，读回 `ws_scale`                    | **132** → 等效 ≈**7.95 A**（原本 15.4 A）                      | ✅ 压暗到预算内                   |
-| 限流（压测）   | 满屏红 + `limit 500`，读回 `ws_scale`                     | **24** → 等效 ≈500 mA                                          | ✅ 公式与实测一致                 |
-| 限流持久化     | `config --limit 500` 后重启                               | NOR `0x7E000` v2 记录生效，`ws_limit_ma=500`                   | ✅ 掉电保持                       |
-| 文字渲染       | 读回 `panel_fb` 还原成 PNG                                | 角标 `02`（USB 3fps 推黑帧时）、`58`（STRIP 模式）             | ✅ 字形清晰、位置正确             |
-| 新增效果       | 宿主机单测遍历 16 种效果                                  | 无空帧、无越界，`ALL TESTS PASSED`                             | ✅ wave/chaser/bounce/meteor      |
-| 尺寸适配       | 8×8 / 8×16 / 8×32 / 16×16 / 16×32 / 32×16 全部编译 + 单测 | 6 种全部 `ALL TESTS PASSED`；16×32 占 RAM 82%                  | ✅ 上限 512 px                    |
-| PA0 按键       | —                                                         | 未验证（需人工按压）                                           | ⏳                                |
+| 项目           | 验证方法                                                  | 实测值                                                         | 结论                                    |
+| -------------- | --------------------------------------------------------- | -------------------------------------------------------------- | --------------------------------------- |
+| 烧录/校验      | OpenOCD `program … verify`                                | `device id 0x8c80abcd`，flash 62KB，Verified OK                | ✅                                      |
+| NOR 识别       | 读回 `nor_id` / `nor_bytes`                               | `0x00C84013` / `0x00080000`                                    | ✅ GD25Q40 512KB                        |
+| NOR 擦写回读   | `nor_selftest()` 返回值                                   | `1`                                                            | ✅                                      |
+| NOR 编程镜像   | `nor_write()` 后 memcmp                                   | 一致（`0`）                                                    | ✅ 偏移 0 写入 8 帧动画                 |
+| 从 NOR 播放    | `nor_img_src()` + `img_open()`                            | `IMG_OK`，`frames=8`                                           | ✅                                      |
+| 解码 + 画布    | `img_show()` 后读 `panel_fb`                              | `rc=0`，`px0=0xFFFFFF`                                         | ✅                                      |
+| PIOC 波形      | `ws2812_last_error()`                                     | `0`（连续上百帧）                                              | ✅ 无 `1-wire error`                    |
+| TIM3 1ms       | 读 `tick_counter_ms` 1000ms 前后                          | `0xD7F3 → 0xDBE4`（+1009）                                     | ✅ 误差 0.9%                            |
+| 主循环节拍     | 1000ms 内循环计数增量                                     | `+17`                                                          | ✅ 与 `Delay_Ms(50)`+7ms 发送吻合       |
+| 字节顺序       | 写入 `(0x11,0x22,0x33)` 后读回 `ws_buf`                   | `22 11 33`                                                     | ✅ GRB                                  |
+| Gamma 表       | 写入 `(128,128,128)` 后读回 `ws_buf`                      | `25 25 25`（`gamma[128]=37`）                                  | ✅ γ=2.8 生效                           |
+| 顺序运行时切换 | USB `SET_ORDER 4` 后读回 `ws_order` + `INFO`              | `ws_order=0x04`，`INFO` 报 `RBG (4)`；`9` 被拒                 | ✅ RBG/RGB 等 6 种随时可切              |
+| 1-wire 速率    | USB `SET_CYC` / `CFG_SET`，读回 `RGB1W_Cyc` + `INFO`      | 56→1166ns，`rate 62`→1291ns；范围外被拒                        | ✅ 48~72 cyc 可调                       |
+| 设置持久化     | `config --rate 60` 后重启，`INFO`                         | NOR `0x7E000` = `57 43 46 47 3C 01 01 FF 00 54`，重启后仍报 60 | ✅ 掉电保持                             |
+| 颜色顺序       | 判色固件：满屏 R/G/B + 8 段色条                           | 与设计一致                                                     | ✅ 默认 GRB 正确                        |
+| 蛇形几何       | 判色固件：白边框 + 左上红/右上蓝角标                      | 完整矩形、角标位置正确                                         | ✅ 16×16 映射正确                       |
+| USART1         | 读 `STATR/BRR/CTLR1`                                      | `TXE\|TC=1`，`BRR=0x1A1`，`UE\|TE=1`                           | ⚠ 已发送，板上未接接收端                |
+| USB 枚举       | 主机侧 `VID:PID=1A86:FE0C`                                | 自动绑定 `usbser.sys`，生成 COM 口                             | ✅                                      |
+| USB INFO       | `wsp_cdc.py info`                                         | `proto 1, 16x16, GRB, NOR 524288 B`                            | ✅                                      |
+| USB 帧流       | 连续推 64 帧 RGB888 + 11 帧 RGB565 @16fps                 | `frames=75`，`crc_errors=0`，`len_errors=0`                    | ✅                                      |
+| USB 写 NOR     | `nor-upload` 2048 B → 偏移 0x1000，再 `nor-dump`          | 回读与源文件 **逐字节一致**                                    | ✅ 阶段 6 上传通路                      |
+| 限流（常态）   | 读回 `ws_scale` / `ws_was_limited`                        | `255` / `0`（demo 内容不超 8A）                                | ✅ 不干扰正常画面                       |
+| 限流（全白）   | 满屏白 + `limit 8000`，读回 `ws_scale`                    | **132** → 等效 ≈**7.95 A**（原本 15.4 A）                      | ✅ 压暗到预算内                         |
+| 限流（压测）   | 满屏红 + `limit 500`，读回 `ws_scale`                     | **24** → 等效 ≈500 mA                                          | ✅ 公式与实测一致                       |
+| 限流持久化     | `config --limit 500` 后重启                               | NOR `0x7E000` v2 记录生效，`ws_limit_ma=500`                   | ✅ 掉电保持                             |
+| 文字渲染       | 读回 `panel_fb` 还原成 PNG                                | 角标 `02`（USB 3fps 推黑帧时）、`58`（STRIP 模式）             | ✅ 字形清晰、位置正确                   |
+| 新增效果       | 宿主机单测遍历 16 种效果                                  | 无空帧、无越界，`ALL TESTS PASSED`                             | ✅ wave/chaser/bounce/meteor            |
+| 尺寸适配       | 8×8 / 8×16 / 8×32 / 16×16 / 16×32 / 32×16 全部编译 + 单测 | 6 种全部 `ALL TESTS PASSED`；16×32 占 RAM 69%                  | ✅ 上限 512 px 舒适，32×32 需减 scratch |
+| 段反向         | 宿主机单测：strip 段 `reverse=1` 后首尾互换               | 之前被双重反转抵消，现正确                                     | ✅ 已修                                 |
+| PA0 按键       | —                                                         | 未验证（需人工按压）                                           | ⏳                                      |
 
 小结：**颜色顺序与蛇形几何均正确，无需调整 `WS2812_COLOR_ORDER` 和 `PANEL_*` 宏；
 USB CDC 枚举、帧流与 NOR 上传均已在板上跑通。**

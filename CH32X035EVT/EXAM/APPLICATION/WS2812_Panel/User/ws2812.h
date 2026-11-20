@@ -21,6 +21,9 @@ void ws2812_init(void);
 /* Global dimming, 0..255 */
 void ws2812_set_brightness(uint8_t level);
 
+/* current global brightness, 0..255 */
+uint8_t ws2812_brightness(void);
+
 /* Byte order sent to the strip.  Starts at WS2812_COLOR_ORDER from
  * wsp_config.h; the SET_ORDER USB command can change it at runtime (RAM only,
  * a power cycle restores the compile time value). */

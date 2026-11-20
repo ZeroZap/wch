@@ -186,6 +186,11 @@ uint8_t ws2812_set_order(uint8_t order)
     return 0;
 }
 
+uint8_t ws2812_brightness(void)
+{
+    return ws_bright;
+}
+
 uint8_t ws2812_order(void)
 {
     return ws_order;
