@@ -1,0 +1,71 @@
+{
+  "WS2812_Panel": {
+    "mcu": "CH32X035",
+    "dir": "CH32X035EVT/EXAM/APPLICATION/WS2812_Panel",
+    "rows": [
+      {
+        "pin": "PC7",
+        "signal": "WS2812 数据（PIOC IO0）",
+        "config": "GPIO_Mode_AF_PP，50MHz",
+        "dir": "输出",
+        "note": "GPIO_PinRemapConfig(GPIO_Remap_PIOC, ENABLE)（仅置 AFIO_PCFR1.PIOC_REMAP bit23，不动 SDI）"
+      },
+      {
+        "pin": "PA0",
+        "signal": "用户按键",
+        "config": "GPIO_Mode_IPU",
+        "dir": "输入",
+        "note": "低电平有效；短按切效果/场景，长按 1.2s 切模式"
+      },
+      {
+        "pin": "PA2",
+        "signal": "NOR Flash CS",
+        "config": "GPIO_Mode_Out_PP",
+        "dir": "输出",
+        "note": "上电默认拉高（不选中）"
+      },
+      {
+        "pin": "PA5",
+        "signal": "NOR Flash SCK",
+        "config": "GPIO_Mode_AF_PP",
+        "dir": "输出",
+        "note": "SPI1_SCK，12MHz（48MHz/4），CPOL=1/CPHA=2Edge（模式 3）"
+      },
+      {
+        "pin": "PA6",
+        "signal": "NOR Flash MISO",
+        "config": "GPIO_Mode_IN_FLOATING",
+        "dir": "输入",
+        "note": "SPI1_MISO"
+      },
+      {
+        "pin": "PA7",
+        "signal": "NOR Flash MOSI",
+        "config": "GPIO_Mode_AF_PP",
+        "dir": "输出",
+        "note": "SPI1_MOSI"
+      },
+      {
+        "pin": "PB10",
+        "signal": "调试串口 TX",
+        "config": "GPIO_Mode_AF_PP",
+        "dir": "输出",
+        "note": "USART1_TX，115200 8N1（USART_Printf_Init）"
+      },
+      {
+        "pin": "PC16",
+        "signal": "USB FS D−（预留）",
+        "config": "GPIO_Mode_IN_FLOATING",
+        "dir": "双向",
+        "note": "阶段 5/6 使用，当前未初始化"
+      },
+      {
+        "pin": "PC17",
+        "signal": "USB FS D+（预留）",
+        "config": "GPIO_Mode_IPU",
+        "dir": "双向",
+        "note": "厂商 USBFS_Device_Init() 的默认配置"
+      }
+    ]
+  }
+}
