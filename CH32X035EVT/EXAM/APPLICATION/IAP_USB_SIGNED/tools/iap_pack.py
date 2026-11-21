@@ -52,6 +52,9 @@ IMG_FLAG_OFFSET = 0x0000F100
 IMG_FLAG_MAGIC = 0x47414C46
 IMG_STATE_VALID = 1
 
+IMG_HMAC_KEY_LEN = 32
+IMG_AES_KEY_LEN = 16
+
 DEFAULT_HMAC_KEY = b"WCH-IAP-DEV-HMAC-KEY-REPLACE-ME!"
 DEFAULT_AES_KEY = b"WCH-IAP-AES-DEV!"
 
@@ -162,26 +165,93 @@ def _token_value(tok):
     return int(tok)
 
 
+_C_ESCAPES = {"n": 10, "r": 13, "t": 9, "0": 0, "\\": 92, '"': 34, "'": 39}
+
+
+def _unescape_c(text):
+    out = bytearray()
+    i = 0
+    while i < len(text):
+        if text[i] == "\\" and (i + 1) < len(text):
+            out.append(_C_ESCAPES.get(text[i + 1], ord(text[i + 1])))
+            i += 2
+        else:
+            out.append(ord(text[i]))
+            i += 1
+    return bytes(out)
+
+
+def _string_define(src, name):
+    pattern = r"^#define\s+" + name + r'\s+"((?:\\.|[^"\\])*)"'
+    m = re.search(pattern, src, re.M)
+    return _unescape_c(m.group(1)) if m else None
+
+
 def load_keys_from_c(path):
+    """Read the keys out of a C key file.
+
+    Handles both shapes the project uses: a generated file with
+    ``const uint8_t img_hmac_key[32] = {0x.., ...};`` and img_key.c itself,
+    which holds ASCII strings behind ``#define IMG_HMAC_KEY "..."``.
+    """
     src = open(path, "r", encoding="utf-8", errors="replace").read()
     arrays = {}
     for name, body in _ARRAY_RE.findall(src):
         arrays[name] = bytes(_token_value(t) for t in _TOKEN_RE.findall(body))
 
-    hmac_key = arrays.get("img_hmac_key")
-    aes_key = arrays.get("img_aes_key")
-    if hmac_key is None or len(hmac_key) != 32:
-        raise SystemExit("error: img_hmac_key[32] not found in %s" % path)
-    if aes_key is None or len(aes_key) != 16:
-        raise SystemExit("error: img_aes_key[16] not found in %s" % path)
+    hmac_key = arrays.get("img_hmac_key") or _string_define(src, "IMG_HMAC_KEY")
+    aes_key = arrays.get("img_aes_key") or _string_define(src, "IMG_AES_KEY")
+
+    if hmac_key is None or aes_key is None:
+        raise SystemExit(
+            "error: no keys found in %s\n"
+            "       the file was built with -DIMG_KEY_FILE, so pass the same keys\n"
+            "       explicitly with --key-file/--hmac-key/--aes-key" % path
+        )
+    if len(hmac_key) != IMG_HMAC_KEY_LEN or len(aes_key) != IMG_AES_KEY_LEN:
+        raise SystemExit(
+            "error: key lengths in %s are %d/%d, expected %d/%d"
+            % (path, len(hmac_key), len(aes_key), IMG_HMAC_KEY_LEN, IMG_AES_KEY_LEN)
+        )
     return hmac_key, aes_key
 
 
-def load_keys(path=None):
+def _parse_key(text, length, what):
+    """Accept 2*length hex characters or length ASCII characters."""
+    text = text.strip()
+    if len(text) == length * 2 and re.fullmatch(r"[0-9a-fA-F]+", text):
+        return bytes.fromhex(text)
+    raw = text.encode("latin-1")
+    if len(raw) != length:
+        raise SystemExit(
+            "error: %s must be %d bytes (%d hex chars or %d ASCII chars)"
+            % (what, length, length * 2, length)
+        )
+    return raw
+
+
+def key_fingerprint(key):
+    return hashlib.sha256(key).hexdigest()[:16]
+
+
+def load_keys(path=None, hmac_key=None, aes_key=None):
+    """Precedence: explicit --hmac-key/--aes-key, then the C key file.
+
+    The C file is boot/User/img_key.c by default, which only matches a boot
+    built without -D overrides.
+    """
     path = path or os.path.join(PROJ, "boot", "User", "img_key.c")
     if os.path.exists(path):
-        return load_keys_from_c(path)
-    return DEFAULT_HMAC_KEY, DEFAULT_AES_KEY
+        file_hmac, file_aes = load_keys_from_c(path)
+    else:
+        file_hmac, file_aes = DEFAULT_HMAC_KEY, DEFAULT_AES_KEY
+
+    if hmac_key is not None:
+        file_hmac = _parse_key(hmac_key, IMG_HMAC_KEY_LEN, "hmac key")
+    if aes_key is not None:
+        file_aes = _parse_key(aes_key, IMG_AES_KEY_LEN, "aes key")
+
+    return file_hmac, file_aes
 
 
 # ---------------------------------------------------------------------------
@@ -419,6 +489,10 @@ def main(argv):
     ap.add_argument("--iv", help="16 byte IV as hex (default: random)")
     ap.add_argument("--load", default=None, help="load address, default 0x2800")
     ap.add_argument("--key-file", help="C file with img_hmac_key / img_aes_key")
+    ap.add_argument(
+        "--hmac-key", help="32 byte HMAC key: 64 hex chars or 32 ASCII chars"
+    )
+    ap.add_argument("--aes-key", help="16 byte AES key: 32 hex chars or 16 ASCII chars")
     ap.add_argument("--verify", metavar="IMG", help="verify an existing image file")
     ap.add_argument("--selfcheck", action="store_true", help="run built-in tests")
     args = ap.parse_args(argv)
@@ -426,7 +500,12 @@ def main(argv):
     if args.selfcheck:
         return selfcheck()
 
-    hmac_key, aes_key = load_keys(args.key_file)
+    hmac_key, aes_key = load_keys(args.key_file, args.hmac_key, args.aes_key)
+
+    print(
+        "keys     : hmac %s / aes %s"
+        % (key_fingerprint(hmac_key), key_fingerprint(aes_key))
+    )
 
     if args.verify:
         blob = open(args.verify, "rb").read()

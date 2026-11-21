@@ -120,10 +120,12 @@ sha256 = SHA-256(明文 payload)
 其它约定：
 
 - IV 每次打包随机（`iap_pack.py` 默认），CTR 复用 IV 等于泄露明文异或值
-- `img_key.c` 里是**公开的开发默认密钥**，量产前必须
-  `python tools/gen_key.py --write` 重新生成，并且不要提交到公开仓库
-- **每产品一份 key**（`boot/User/img_key.c`，随 boot 二进制一起发布）；
-  `iap_pack.py` 直接解析该文件，避免主机与芯片两边不一致
+- `img_key.c` 里是**公开的开发默认密钥**，量产前必须重新生成，且不要提交到公开仓库
+  （`python tools/gen_key.py --write`）
+- **每产品一份 key**，可在编译期覆盖：`-DIMG_HMAC_KEY/-DIMG_AES_KEY`（ASCII）或
+  `-DIMG_KEY_FILE`（文件），见 §6.1
+- 主机工具默认解析 `boot/User/img_key.c`；用了 `-D` 覆盖时要给 `iap_pack.py`/
+  `iap_flash.py` 传同一套 key（`--key-file` / `--hmac-key` / `--aes-key`）
 - 换 key = 换 boot 二进制，走不了 USB 升级通道，必须重烧 boot（见 §6.1）
 
 ---
@@ -255,25 +257,55 @@ sh tools/build.sh app
 `RISCV_GCC_BIN=/path/to/bin` 指定。产物在 `build/boot/`、`build/app/`。
 `LTO=1 sh tools/build.sh boot` 可再省 ~340 B（约 9448 B）。
 
-### 6.1 每个产品一份 boot（写死版本 / 产品 ID / key / USB PID）
+### 6.1 每个产品一份 boot（版本 / 产品 ID / key / USB PID 全部编译期可配）
 
-不做运行期配 key，产品身份全部编进 boot，改四处即可：
+不做运行期配 key，产品身份全部编进 boot。**所有可变参数都支持 `-D` 传入**，
+一个源树就能出 N 个产品的 boot：
 
-| 要改什么                | 位置                                | 怎么改                                                           |
-| ----------------------- | ----------------------------------- | ---------------------------------------------------------------- |
-| HMAC / AES key          | `boot/User/img_key.c`               | `python tools/gen_key.py --write`（随机生成）或手填              |
-| 产品 ID + boot 版本     | `boot/User/boot_info.h`             | 改宏，或编译时 `-DBOOT_PRODUCT_ID=0x0102 -DBOOT_VERSION_MINOR=3` |
-| USB PID（区分产品端口） | `boot/User/boot_info.h`             | `-DBOOT_USB_PID=0xFE21`                                          |
-| app 起始地址 / 分区     | `shared/img_hdr.h` + 两个 `Link.ld` | 一般不用动                                                       |
+| 宏 | 默认 | 作用 |
+| --- | --- | --- |
+| `BOOT_PRODUCT_ID` | `0x0000` | 产品 ID，`INFO` 回显 |
+| `BOOT_VERSION_MAJOR` / `BOOT_VERSION_MINOR` | `1` / `0` | boot 版本，`INFO` 回显 |
+| `BOOT_USB_PID` | `0xFE0D` | boot 的 USB PID（多产品插同一台 PC 时用它区分） |
+| `IMG_HMAC_KEY` | 开发默认 32 字符 | HMAC-SHA256 密钥，ASCII，必须 32 字符 |
+| `IMG_AES_KEY` | 开发默认 16 字符 | AES-128 密钥，ASCII，必须 16 字符 |
+| `IMG_KEY_FILE` | — | `#include` 一个密钥文件（随机二进制 key 用这个） |
+| `IMG_BOOT_SIZE` / `IMG_SLOT_*` 等 | 见 `shared/img_hdr.h` | 分区布局，改完要同步两个 `Link.ld` |
+
+前三项在 `boot/User/boot_info.h`（`#ifndef` 包着），key 三项在 `boot/User/img_key.c`。
 
 ```sh
-# 产品 A 的 boot：key 独立、版本 1.3、PID 0xFE21
-python tools/gen_key.py --write            # 生成 A 的 key
-sh tools/build.sh boot -DBOOT_PRODUCT_ID=0x0101 -DBOOT_VERSION_MINOR=3 -DBOOT_USB_PID=0xFE21
+# 方式 1：key 写成文件（随机二进制，推荐量产）
+python tools/gen_key.py --write -o keys/acme.c
+sh tools/build.sh boot -DIMG_KEY_FILE='"../../keys/acme.c"'     -DBOOT_PRODUCT_ID=0x0101 -DBOOT_VERSION_MINOR=3 -DBOOT_USB_PID=0xFE21
 
-# 打包镜像时 iap_pack.py 会自动用 img_key.c 里的 key，两边不会不一致
-python tools/iap_pack.py build/app/app.bin -o build/app.img
+# 方式 2：直接内联 ASCII key（CI / 临时验证最方便）
+sh tools/build.sh boot     -DIMG_HMAC_KEY='"0123456789abcdef0123456789abcdef"'     -DIMG_AES_KEY='"0123456789abcdef"'     -DBOOT_PRODUCT_ID=0x0101
+
+# 方式 3：什么都不传，用 img_key.c 里的开发默认 key
+sh tools/build.sh boot
 ```
+
+`IMG_HMAC_KEY` / `IMG_AES_KEY` 长度不对会**编译失败**（`img_key.c` 里用
+`typedef char ... [(sizeof(...) == LEN+1) ? 1 : -1]` 做静态检查），不会悄悄截断。
+
+> **主机侧必须给同一套 key。** `iap_pack.py` / `iap_flash.py` 默认解析
+> `boot/User/img_key.c`，只有"方式 3"对得上；用方式 1/2 时要显式传参：
+>
+> ```sh
+> python tools/iap_pack.py  build/app/app.bin -o build/app.img --key-file keys/acme.c
+> python tools/iap_flash.py --port COM61 --image build/app.img --key-file keys/acme.c
+> # 或 --hmac-key '32 chars' --aes-key '16 chars'
+> ```
+>
+> 两个工具都会打印 key 指纹（SHA-256 前 16 位），对不上一眼可见：
+>
+> ```
+> keys     : hmac 2f3d6944035b4366 / aes 6c471275adff7426
+> ```
+>
+> key 不匹配时 `BEGIN/DATA` 都会成功，只有 `END` 返回
+> `HMAC mismatch (wrong key?)`、state 保持 `NONE` —— 已实测。
 
 `INFO` 会回显 `boot version / product id / usb pid`，产线上用一条命令就能确认板子上
 烧的是哪个产品：
@@ -304,6 +336,11 @@ python tools/iap_pack.py build/app/app.bin -o build/app_enc.img --encrypt
 
 # 校验已有镜像（结构 / HMAC / SHA-256 / CRC-32）
 python tools/iap_pack.py --verify build/app_enc.img
+
+# boot 用 -D 或 IMG_KEY_FILE 换了 key 时，这里要传同一套（否则 END 会报 HMAC 不匹配）
+python tools/iap_pack.py build/app/app.bin -o build/app.img --key-file keys/acme.c
+python tools/iap_pack.py build/app/app.bin -o build/app.img \
+    --hmac-key '0123456789abcdef0123456789abcdef' --aes-key '0123456789abcdef'
 ```
 
 ### 7.2 首次烧录
@@ -449,6 +486,9 @@ sh tests/run.sh
 - [x] 跳转目标 0x2800 生效（app 向量表在 0x2804）
 - [x] 满 40 KB 镜像安装（`--no-jump`），`BEGIN` 156 ms
 - [x] `--reboot-to-boot` 让 app 回到 boot，flag 机制有效
+- [x] `-DIMG_HMAC_KEY/IMG_AES_KEY` 编出来的 boot：用匹配 key 打包 → 安装成功、跳转正常
+- [x] 同一个 boot 用**不匹配** key 打包 → `END` 返回 `HMAC mismatch (wrong key?)`，state 保持 NONE
+- [x] `-DIMG_KEY_FILE`（`gen_key.py` 生成的二进制 key 文件）编出来的 boot 正常工作
 - [x] 反复升级、加密/明文混用、ABORT
 
 未做：实测启动校验耗时（需要 GPIO 打点或调试器计时），

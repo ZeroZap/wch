@@ -221,9 +221,9 @@ def do_read(link, spec):
     return 0
 
 
-def do_upgrade(link, image_path, jump=True):
+def do_upgrade(link, image_path, jump=True, key_args=None):
     blob = open(image_path, "rb").read()
-    hmac_key, aes_key = iap_pack.load_keys()
+    hmac_key, aes_key = iap_pack.load_keys(*(key_args or (None, None, None)))
 
     ok, msg = iap_pack.verify_image(blob, hmac_key, aes_key)
     if not ok:
@@ -319,6 +319,9 @@ def main(argv):
         action="store_true",
         help="talk to a running app: ask it to re-enter the bootloader",
     )
+    ap.add_argument("--key-file", help="C file with the image keys (default: boot/User/img_key.c)")
+    ap.add_argument("--hmac-key", help="32 byte HMAC key: 64 hex chars or 32 ASCII chars")
+    ap.add_argument("--aes-key", help="16 byte AES key: 32 hex chars or 16 ASCII chars")
     ap.add_argument("--quiet", action="store_true", help="no progress output")
     args = ap.parse_args(argv)
 
@@ -336,7 +339,8 @@ def main(argv):
         if args.erase:
             rc = do_erase(link)
         if args.image and rc == 0:
-            rc = do_upgrade(link, args.image, jump=not args.no_jump)
+            rc = do_upgrade(link, args.image, jump=not args.no_jump,
+                            key_args=(args.key_file, args.hmac_key, args.aes_key))
         if args.read and rc == 0:
             rc = do_read(link, args.read)
         if args.info and rc == 0:
