@@ -40,6 +40,7 @@
 #include "wsp_seg.h"
 #include "wsp_fx.h"
 #include "wsp_button.h"
+#include "app_iap.h"
 #include "wsp_img.h"
 #include "img_demo.h"
 
@@ -64,6 +65,8 @@
 
 #define DEMO_HOLD_MS            2500
 
+/* only reached from a log line; the TSSOP20 build compiles those out */
+__attribute__((unused))
 static const char *color_order_name(uint8_t order)
 {
     static const char *const names[] = { "RGB", "GRB", "BRG", "BGR", "RBG", "GBR" };
@@ -90,6 +93,37 @@ static uint8_t usb_yield(void)
 #else
 #define usb_yield()             0
 #endif
+
+/*---------------------------------------------------------------------------
+ * Long-hold escape hatch
+ *
+ * Holding the button for WSP_BTN_UPGRADE_MS hands over to the bootloader:
+ * app_iap_request() writes the UPGRADE flag to 0xF100 and resets, and the boot
+ * stays in its USB update mode.  On TSSOP20 this is the only way to start an
+ * update, because the SDI debug pins are taken by the WS2812 output.
+ *---------------------------------------------------------------------------*/
+static void check_upgrade(void)
+{
+    uint32_t i;
+
+    if (!button_upgrade()) {
+        return;
+    }
+
+    printf("button: upgrade requested, handing over to the bootloader\r\n");
+
+    /* dim blue flash so the gesture is visible before the reset */
+    ws2812_set_brightness(64);
+    for (i = 0; i < CANVAS_PIXELS; i++) {
+        panel_fb[i * 3u + 0u] = 0u;
+        panel_fb[i * 3u + 1u] = 0u;
+        panel_fb[i * 3u + 2u] = 255u;
+    }
+    panel_show();
+    Delay_Ms(200);
+
+    app_iap_request();              /* does not return */
+}
 
 /*---------------------------------------------------------------------------
  * STRIP mode
@@ -175,11 +209,14 @@ static uint8_t panel_wait(uint32_t ms)
 
     while ((tick_ms() - start) < ms) {
         if (usb_yield()) {
+            button_poll();
+            check_upgrade();
             Delay_Ms(2);
             continue;
         }
 
         button_poll();
+        check_upgrade();
 
         if (button_long()) {
             enter_strip();
@@ -290,11 +327,14 @@ static void panel_run_segments(uint32_t duration)
 
     while ((tick_ms() - start) < duration) {
         if (usb_yield()) {
+            button_poll();
+            check_upgrade();
             Delay_Ms(2);
             continue;
         }
 
         button_poll();
+        check_upgrade();
 
         if (button_long()) {
             enter_strip();
@@ -372,11 +412,14 @@ static void run_strip_mode(void)
 
     for (;;) {
         if (usb_yield()) {
+            button_poll();
+            check_upgrade();
             Delay_Ms(2);
             continue;
         }
 
         button_poll();
+        check_upgrade();
 
         if (button_long()) {
             enter_panel();

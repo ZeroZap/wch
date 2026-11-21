@@ -33,8 +33,8 @@ sh tools/build.sh --tssop20    # TSSOP20：WS2812 = PC18，日志编译掉
 
 | 版本 | WS2812 脚 | 调试串口 | flash | RAM |
 | --- | --- | --- | --- | --- |
-| LQFP48 | PC7（PIOC 重映射，SDI 保留） | PB10 | 26812 B | 8284 B |
-| TSSOP20 | **PC18**（SDI 失效） | 无（`printf` 编译掉） | **19936 B** | 8144 B |
+| LQFP48 | PC7（PIOC 重映射，SDI 保留） | PB10 | 27024 B | 8284 B |
+| TSSOP20 | **PC18**（SDI 失效） | 无（`printf` 编译掉） | **20076 B** | 8144 B |
 
 TSSOP20 的代价和应对（调试口、串口取舍）见 [`PINMUX.md`](PINMUX.md)。
 
@@ -95,12 +95,38 @@ sh tools/build.sh --standalone
 
 因为格式一致，`tools/wsp_cdc.py` 和 `iap_flash.py --reboot-to-boot` 都能直接用。
 
+## 按键手势（PA0）
+
+| 手势 | 动作 |
+| --- | --- |
+| 短按（< 1.2 s 松开） | 下一个特效 / 下一个画面 |
+| 长按（1.2–3.0 s 松开） | 切换 STRIP <-> PANEL |
+| **按住 ≥ 3 s** | **进入升级模式**：灯带闪一下暗蓝，写 UPGRADE flag 并复位，随后出现 boot 端口 `1A86:FE0D` |
+
+长按改成**松手时**才触发，所以按住 3 s 的升级手势不会先把模式切走。
+阈值都在 `wsp_config.h`：
+
+```c
+#define WSP_BTN_LONG_MS         1200   /* 短按 / 长按分界 */
+#define WSP_BTN_UPGRADE_MS      3000   /* 0 = 关闭升级手势 */
+```
+
+这是 TSSOP20 上最实用的入口：那颗芯片用 PC18 输出 WS2812，SDI 调试口被占，
+现场没有调试器也只需要按住按键 3 s 就能切到升级模式，然后：
+
+```sh
+python ../IAP_USB_SIGNED/tools/iap_flash.py --port COMx --image build/panel.img
+```
+
+主机正在推流（USB 独占屏幕）时按键同样有效，固件在那条分支里也会轮询按键。
+
+
 ## 尺寸（16×16 默认几何）
 
 | 封装 | flash（`.bin`） | 占 50 KB 槽 | RAM（data+bss，含 2K 栈） | 占 16 KB |
 | --- | --- | --- | --- | --- |
-| LQFP48 | 26812 B | 52% | 8284 B | 51% |
-| TSSOP20 | 19936 B | 39% | 8144 B | 50% |
+| LQFP48 | 27024 B | 52% | 8284 B | 51% |
+| TSSOP20 | 20076 B | 39% | 8144 B | 50% |
 
 16×32 几何：LQFP48 26908 B / RAM 11356 B；TSSOP20 约 20 KB / RAM 11216 B，均在预算内。
 `Ld/Link.ld` 里有 `ASSERT(_ebss <= ...)`，溢出会直接编译失败。

@@ -58,7 +58,8 @@ TSSOP20 上没有 PC7，PIOC 的 `IO0/IO1` 只引出到 PC18 / PC19，
 | 场合 | 做法 |
 | --- | --- |
 | 生产 / 换机 | `flash.sh factory` 一次写完整片，不需要再连调试器 |
-| 现场升级 | USB CDC（`iap_flash.py`），完全不碰调试口 |
+| 现场升级 | **按住按键 3 s** 进升级模式，再用 USB CDC（`iap_flash.py`），完全不碰调试口 |
+| 有上位机 | 发 `0x20 UPGRADE`（`iap_flash.py --reboot-to-boot`），效果同上 |
 | 需要单步调试 | 用 LQFP48 开发板 + `sh tools/build.sh --standalone`（链接在 `0x0`） |
 | 必须在 TSSOP20 上调试 | 只能在上电瞬间抢连；或者把 PIOC 换成软件翻转（本工程未实现） |
 
@@ -79,8 +80,8 @@ TSSOP20 上没有 PC7，PIOC 的 `IO0/IO1` 只引出到 PC18 / PC19，
 
 | 版本 | text | data | flash 合计 | RAM（data+bss） |
 | --- | --- | --- | --- | --- |
-| LQFP48（16×16） | 26604 | 208 | 26812 B | 8284 B |
-| TSSOP20（16×16） | 19856 | 80 | **19936 B** | 8144 B |
+| LQFP48（16×16） | 26816 | 208 | 27024 B | 8284 B |
+| TSSOP20（16×16） | 19996 | 80 | **20076 B** | 8144 B |
 
 需要串口日志时，把 `WSP_DEBUG_UART` 改成 1 并自行挑一个能牺牲的脚。
 
@@ -144,4 +145,4 @@ python ../IAP_USB_SIGNED/tools/iap_flash.py --port COMx --info   # 看 state / s
 > `shared/img_hdr.h` 的 `IMG_SLOT_SIZE` 和两个 `Link.ld`；
 > `Ld/Link.ld` 里的 `ASSERT` 和 `LENGTH` 会先报错，不会悄悄越界。
 
-TSSOP20 版镜像只有 19.9 KB，50 KB 槽的余量约 30 KB，够放更大的点阵或字库。
+TSSOP20 版镜像只有 20.1 KB，50 KB 槽的余量约 30 KB，够放更大的点阵或字库。
