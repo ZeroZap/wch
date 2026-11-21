@@ -11,6 +11,7 @@
 | 项 | `WS2812_Panel` | 这里 |
 | --- | --- | --- |
 | 链接地址 | `0x0000` / 62 KB | **`0x2800` / 50 KB**（前 10 KB 是 boot） |
+| 封装 | 固定 LQFP48 | **LQFP48 / TSSOP20 二选一**（`-DWSP_BOARD=...`，见 `PINMUX.md`） |
 | 启动方式 | 复位直接跑 | boot 校验通过后经软件中断跳转 |
 | USB PID | `0xFE0C` | `0xFE0E`（boot 是 `0xFE0D`） |
 | 升级 | 只能 WCH-Link | USB CDC 下发 + 可选 AES 加密 + 签名 |
@@ -19,10 +20,29 @@
 
 新增文件只有两个：`User/app_iap.c/.h`（写内部 flag 页 + 复位）。
 
+## 封装选择（LQFP48 / CH32X033 TSSOP20）
+
+一套源码编译期选封装，引脚定义集中在 `User/board_config.h`：
+
+```sh
+sh tools/build.sh              # LQFP48（默认）：WS2812 = PC7，保留 SDI 调试
+sh tools/build.sh --tssop20    # TSSOP20：WS2812 = PC18，日志编译掉
+```
+
+两封装的差异只有两处：`PC7` 和 `PB10` 在 TSSOP20 上不存在。
+
+| 版本 | WS2812 脚 | 调试串口 | flash | RAM |
+| --- | --- | --- | --- | --- |
+| LQFP48 | PC7（PIOC 重映射，SDI 保留） | PB10 | 26812 B | 8284 B |
+| TSSOP20 | **PC18**（SDI 失效） | 无（`printf` 编译掉） | **19936 B** | 8144 B |
+
+TSSOP20 的代价和应对（调试口、串口取舍）见 [`PINMUX.md`](PINMUX.md)。
+
 ## 构建
 
 ```sh
-sh tools/build.sh                        # 默认几何
+sh tools/build.sh                        # 默认几何 + LQFP48
+sh tools/build.sh --tssop20              # CH32X033 TSSOP20
 sh tools/build.sh -DPANEL_W=16 -DPANEL_H=32
 sh tools/build.sh --no-pack              # 只出 elf/bin
 sh tools/build.sh --standalone           # 链接在 0x0，纯调试用（不经过 boot）
@@ -77,16 +97,18 @@ sh tools/build.sh --standalone
 
 ## 尺寸（16×16 默认几何）
 
-| 项 | 值 | 占槽 |
-| --- | --- | --- |
-| flash（`.bin`） | 26812 B | 52% of 50 KB |
-| RAM（data+bss，含 2K 栈） | 8284 B | 51% of 16 KB |
+| 封装 | flash（`.bin`） | 占 50 KB 槽 | RAM（data+bss，含 2K 栈） | 占 16 KB |
+| --- | --- | --- | --- | --- |
+| LQFP48 | 26812 B | 52% | 8284 B | 51% |
+| TSSOP20 | 19936 B | 39% | 8144 B | 50% |
 
-16×32 几何：flash 26908 B、RAM 11356 B，仍在预算内。
+16×32 几何：LQFP48 26908 B / RAM 11356 B；TSSOP20 约 20 KB / RAM 11216 B，均在预算内。
 `Ld/Link.ld` 里有 `ASSERT(_ebss <= ...)`，溢出会直接编译失败。
 
 ## 注意
 
+- **TSSOP20 上 app 会关掉 SDI**（WS2812 必须用 PC18/PC19）：调试请在 LQFP48 板上
+  用 `--standalone`；上板更新一律走 USB 或 `factory.bin`。
 - **PIOC 占 RAM 高 4 KB**（`0x20004000..0x20004FFF`）：boot 不碰这块，跳转后由 app
   重新初始化，两者互不影响。
 - **外部 NOR 与内部 flag 页无关**：`norflash.c` 走 SPI 存图片，`app_iap_request()`

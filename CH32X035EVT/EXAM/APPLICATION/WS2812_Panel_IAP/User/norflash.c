@@ -11,9 +11,11 @@
  *******************************************************************************/
 #include <string.h>
 #include "norflash.h"
+#include "board_config.h"
 
-#define NOR_CS_PORT             GPIOA
-#define NOR_CS_PIN              GPIO_Pin_2
+/* PA2 / PA5 / PA6 / PA7 on both packages, see board_config.h */
+#define NOR_CS_PORT             WSP_NOR_PORT
+#define NOR_CS_PIN              WSP_NOR_CS_PIN
 
 #define NOR_CMD_WRITE_ENABLE    0x06
 #define NOR_CMD_READ_STATUS     0x05
@@ -163,17 +165,17 @@ uint8_t nor_init(void)
     GPIO_Init(NOR_CS_PORT, &GPIO_InitStructure);
     nor_cs_high();
 
-    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_5;   /* SCK  */
+    GPIO_InitStructure.GPIO_Pin = WSP_NOR_SCK_PIN;      /* SCK  */
     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
-    GPIO_Init(GPIOA, &GPIO_InitStructure);
+    GPIO_Init(WSP_NOR_PORT, &GPIO_InitStructure);
 
-    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_6;   /* MISO */
+    GPIO_InitStructure.GPIO_Pin = WSP_NOR_MISO_PIN;     /* MISO */
     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
-    GPIO_Init(GPIOA, &GPIO_InitStructure);
+    GPIO_Init(WSP_NOR_PORT, &GPIO_InitStructure);
 
-    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_7;   /* MOSI */
+    GPIO_InitStructure.GPIO_Pin = WSP_NOR_MOSI_PIN;     /* MOSI */
     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
-    GPIO_Init(GPIOA, &GPIO_InitStructure);
+    GPIO_Init(WSP_NOR_PORT, &GPIO_InitStructure);
 
     nor_spi_cfg(WSP_NOR_SPI_PRESCALER);
     nor_id = nor_read_jedec();

@@ -1,7 +1,9 @@
 #!/bin/sh
 # Build WS2812_Panel_IAP, the panel application for the IAP_USB_SIGNED bootloader.
 #
-#   sh tools/build.sh                  # app at 0x2800, then pack panel.img + factory.bin
+#   sh tools/build.sh                  # LQFP48 app at 0x2800, then pack img + factory.bin
+#   sh tools/build.sh --tssop20        # CH32X033 TSSOP20 pinmap (WS2812 on PC18)
+#   sh tools/build.sh --lqfp48         # explicit default (WS2812 on PC7)
 #   sh tools/build.sh -DPANEL_W=16 -DPANEL_H=32
 #   sh tools/build.sh --no-pack        # just the .elf/.bin
 #   sh tools/build.sh --standalone     # linked at 0x0 for pure debugger use
@@ -25,11 +27,14 @@ OUT="$PROJ/build"
 
 STANDALONE=0
 PACK=1
+BOARD=LQFP48
 EXTRA=""
 for arg in "$@"; do
     case "$arg" in
     --standalone) STANDALONE=1 ;;
     --no-pack)    PACK=0 ;;
+    --tssop20)    BOARD=TSSOP20; EXTRA="$EXTRA -DWSP_BOARD=WSP_BOARD_TSSOP20" ;;
+    --lqfp48)     BOARD=LQFP48;  EXTRA="$EXTRA -DWSP_BOARD=WSP_BOARD_LQFP48" ;;
     *)            EXTRA="$EXTRA $arg" ;;
     esac
 done
@@ -67,6 +72,7 @@ TC=$(find_toolchain) || {
 PATH="$TC:$PATH"
 export PATH
 echo "toolchain : $TC"
+echo "board     : $BOARD"
 
 ARCH="-march=rv32imacxw -mabi=ilp32"
 CFLAGS="$ARCH -msmall-data-limit=8 -msave-restore -Os -fmessage-length=0 \
@@ -113,6 +119,7 @@ fi
 
 echo
 echo "== packing =="
+echo "board: $BOARD"
 PY=${PYTHON:-python}
 
 "$PY" "$IAP/tools/iap_pack.py" "$OUT/panel.bin" -o "$OUT/panel.img"

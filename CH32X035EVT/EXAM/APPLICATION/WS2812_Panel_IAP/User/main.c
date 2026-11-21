@@ -20,11 +20,12 @@
  *                still image -> scaled image -> animation -> NOR animation
  *                -> point -> line -> plane (segment composites)
  *
- * Hardware
- *   WS2812 data : PC7 (PIOC IO0 via GPIO_Remap_PIOC, SDI debug unaffected)
+ * Hardware (package chosen at build time, see board_config.h)
+ *   LQFP48  (-DWSP_BOARD=1)  WS2812 PC7  (PIOC IO0, SDI debug unaffected)
+ *   TSSOP20 (-DWSP_BOARD=2)  WS2812 PC18 (PC7 not bonded, SDI debug lost)
  *   User button : PA0, active low, internal pull-up
  *   NOR flash   : SCK PA5, MISO PA6, MOSI PA7, CS PA2 (optional, W25Qxx/GD25Qxx)
- *   Debug UART  : PB10 (USART1 TX), 115200 8N1
+ *   Debug UART  : PB10 (USART1 TX), LQFP48 only
  *
  * Images are packed with tools/wsp_pack.py, see README.md.
  */
@@ -479,7 +480,9 @@ int main(void)
 {
     SystemCoreClockUpdate();
     Delay_Init();
+#if WSP_DEBUG_UART
     USART_Printf_Init(115200);
+#endif
     NVIC_PriorityGroupConfig(NVIC_PriorityGroup_1);
 
     tick_init();

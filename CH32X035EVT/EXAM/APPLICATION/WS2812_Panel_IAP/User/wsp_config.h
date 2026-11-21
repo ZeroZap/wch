@@ -9,6 +9,15 @@
 #ifndef __WSP_CONFIG_H
 #define __WSP_CONFIG_H
 
+/* package / pinmap selection, see board_config.h */
+#include "board_config.h"
+
+#if !WSP_DEBUG_UART
+/* TSSOP20 has no free UART TX pin (PB10 is not bonded out).  Compile the log
+ * calls away instead of leaving them waiting on a transmitter that never runs. */
+#define printf(...) ((void)0)
+#endif
+
 /*---------------------------------------------------------------------------
  * Panel geometry
  *
@@ -68,10 +77,9 @@
  * User button: PA0 active low with internal pull-up (same as EXAM/EXTI/EXTI0)
  *   short press : next effect (STRIP) / next item (PANEL)
  *   long press  : toggle STRIP <-> PANEL
+ * Port/pin come from board_config.h (PA0 in both packages).
  *---------------------------------------------------------------------------*/
 #define WSP_BTN_ENABLE          1
-#define WSP_BTN_PORT            GPIOA
-#define WSP_BTN_PIN             GPIO_Pin_0
 #define WSP_BTN_DEBOUNCE_MS     20
 #define WSP_BTN_LONG_MS         1200
 
@@ -189,23 +197,19 @@
 #define WSP_TRANS_MS            160
 #endif
 
-/* PIOC output pin:
- *   PC7 (default)  : PIOC IO0 via GPIO_Remap_PIOC, the SDI debug pins are
- *                    untouched, so WCH-Link debugging keeps working.
- *   PC18 / PC19    : PIOC IO0 / IO1 on the SDI shared pins; the init code
- *                    then calls GPIO_Remap_SWJ_Disable and SDI is lost. */
-#define WS2812_PIOC_PC7         1
-#define WS2812_PIOC_PC18        2
-#define WS2812_PIOC_PC19        3
-
+/* PIOC output pin, selected per package in board_config.h:
+ *   LQFP48 : PC7 (PIOC IO0 via GPIO_Remap_PIOC, SDI debug stays usable)
+ *   TSSOP20: PC18 (PC7 is not bonded; SDI debug is lost)
+ * Override manually with -DWS2812_PIOC_PIN=WS2812_PIOC_PC19 if needed. */
 #ifndef WS2812_PIOC_PIN
-#define WS2812_PIOC_PIN         WS2812_PIOC_PC7
+#define WS2812_PIOC_PIN         WSP_WS2812_PIOC_PIN
 #endif
 
 /*---------------------------------------------------------------------------
  * External SPI NOR flash (W25Qxx / GD25Qxx) on SPI1 - same wiring as
  * EXAM/SPI/SPI_FLASH
- *   SCK PA5, MISO PA6, MOSI PA7, CS PA2
+ *   SCK PA5, MISO PA6, MOSI PA7, CS PA2 (board_config.h pins, identical on
+ *   both packages)
  *   capacity 64KB..32MB, e.g. GD25Q40 = 0xC84013 = 512KB
  *---------------------------------------------------------------------------*/
 #define WSP_NOR_ENABLE          1
