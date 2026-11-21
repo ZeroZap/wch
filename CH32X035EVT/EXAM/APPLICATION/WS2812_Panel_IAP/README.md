@@ -109,6 +109,8 @@ sh tools/build.sh --standalone
 
 - **TSSOP20 上 app 会关掉 SDI**（WS2812 必须用 PC18/PC19）：调试请在 LQFP48 板上
   用 `--standalone`；上板更新一律走 USB 或 `factory.bin`。
+- **Flash 62 KB**：CH32X033 / CH32X035 各级封装一致，两个封装共用同一份分区表
+  （boot 10 KB / app 50 KB / 头页 0xF000 / flag 页 0xF100）。
 - **PIOC 占 RAM 高 4 KB**（`0x20004000..0x20004FFF`）：boot 不碰这块，跳转后由 app
   重新初始化，两者互不影响。
 - **外部 NOR 与内部 flag 页无关**：`norflash.c` 走 SPI 存图片，`app_iap_request()`

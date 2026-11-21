@@ -106,11 +106,23 @@ riscv-none-embed-gcc -fsyntax-only -march=rv32imacxw -mabi=ilp32 \
 - `-DWSP_BOARD=WSP_BOARD_TSSOP20` → `WS2812_PIOC_PIN == 2`（PC18）
 - TSSOP20 却断言 PC7 → 编译失败（符合预期）
 
-上板后还可以用 boot 的 `INFO` 和面板本身确认：
+### 验证状态
+
+| 版本 | 状态 |
+| --- | --- |
+| LQFP48（CH32X035C-R0-1V2） | ✅ 已上板：factory.bin 刷入后 `FE0E` 出现、灯带正常、USB 升级通过 |
+| TSSOP20（CH32X033） | ⚠️ 仅编译期验证：两种几何都链接通过、`_Static_assert` 断言通过、镜像 19.9 / 20.0 KB；**暂无实物，未上板** |
+
+拿到 TSSOP20 板子后的首次上板步骤：
+
+1. `sh tools/build.sh --tssop20` → `build/factory.bin`
+2. `sh ../IAP_USB_SIGNED/tools/flash.sh factory build/factory.bin`
+3. 万用表/示波器量 **PC18（TSSOP20 第 19 脚）**：应有 800 kHz、高电平 5V 经电平转换后的单线波形
+4. 灯带不亮时先查：PC18 波形 → WS2812 电平/VCC → 颜色顺序宏
+5. USB 侧确认 `1A86:FE0E` 出现，再跑一次 `iap_flash.py --image build/panel.img` 验证升级闭环
 
 ```sh
 python ../IAP_USB_SIGNED/tools/iap_flash.py --port COMx --info   # 看 state / slot
-# TSSOP20 上灯带能亮 = PIOC 输出脚选对了；不亮先量 PC18 有没有波形
 ```
 
 ## 5. Flash 预算
@@ -124,8 +136,12 @@ python ../IAP_USB_SIGNED/tools/iap_flash.py --port COMx --info   # 看 state / s
 0xF200..0xF7FF  1.5 KB 用户区
 ```
 
-CH32X033F8P6 标称 64 KB Flash，可用区与本工程假设的 62 KB 一致。
-**若换成 Flash 更小的型号**，必须同步改 `shared/img_hdr.h` 的 `IMG_SLOT_SIZE`
-和两个 `Link.ld`，否则 boot 的校验范围会和实际容量对不上。
+**CH32X033 与 CH32X035 各级封装都是 62 KB 可用 Flash（已确认）**，两个封装共用
+同一份分区表，boot 的校验范围不会因为换封装而对不上。OpenOCD 的探测结果也是
+`flash size = 62kbytes`。
+
+> 只有换成 Flash 更小的别的型号（例如 32 KB 的变体）才需要同步改
+> `shared/img_hdr.h` 的 `IMG_SLOT_SIZE` 和两个 `Link.ld`；
+> `Ld/Link.ld` 里的 `ASSERT` 和 `LENGTH` 会先报错，不会悄悄越界。
 
 TSSOP20 版镜像只有 19.9 KB，50 KB 槽的余量约 30 KB，够放更大的点阵或字库。

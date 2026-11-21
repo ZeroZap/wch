@@ -46,7 +46,7 @@
 #define IMG_FLAG_OFFSET         0x0000F100u
 #define IMG_USER_OFFSET         0x0000F200u     /* spare, not used by the boot */
 #define IMG_USER_SIZE           0x00000600u     /* 1.5 KB */
-#define IMG_FLASH_END           0x0000F800u     /* 62 KB of usable code flash */
+#define IMG_FLASH_END           0x0000F800u     /* 62 KB, every CH32X033/035 package */
 
 #define IMG_SLOT_BASE           (IMG_FLASH_ALIAS + IMG_SLOT_OFFSET)
 #define IMG_SLOT_END            (IMG_SLOT_BASE + IMG_SLOT_SIZE)
