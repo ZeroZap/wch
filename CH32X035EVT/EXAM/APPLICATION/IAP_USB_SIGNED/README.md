@@ -40,6 +40,8 @@ IAP_USB_SIGNED/
 │       └── usb_*           同上，PID 0xFE0E (app)
 ├── tools/
 │   ├── iap_pack.py         打包 + 签名 + 可选加密 + 校验 + 自检
+│   ├── mkfactory.py        boot + app + meta -> factory.bin（调试器一次刷完）
+│   ├── flash.sh            factory / boot / app 三种烧录入口
 │   ├── iap_flash.py        通过 USB CDC 下发镜像（pyserial）
 │   ├── gen_key.py          生成随机密钥，写入 img_key.c
 │   └── build.sh            命令行编译 boot / app
@@ -262,15 +264,15 @@ sh tools/build.sh app
 不做运行期配 key，产品身份全部编进 boot。**所有可变参数都支持 `-D` 传入**，
 一个源树就能出 N 个产品的 boot：
 
-| 宏 | 默认 | 作用 |
-| --- | --- | --- |
-| `BOOT_PRODUCT_ID` | `0x0000` | 产品 ID，`INFO` 回显 |
-| `BOOT_VERSION_MAJOR` / `BOOT_VERSION_MINOR` | `1` / `0` | boot 版本，`INFO` 回显 |
-| `BOOT_USB_PID` | `0xFE0D` | boot 的 USB PID（多产品插同一台 PC 时用它区分） |
-| `IMG_HMAC_KEY` | 开发默认 32 字符 | HMAC-SHA256 密钥，ASCII，必须 32 字符 |
-| `IMG_AES_KEY` | 开发默认 16 字符 | AES-128 密钥，ASCII，必须 16 字符 |
-| `IMG_KEY_FILE` | — | `#include` 一个密钥文件（随机二进制 key 用这个） |
-| `IMG_BOOT_SIZE` / `IMG_SLOT_*` 等 | 见 `shared/img_hdr.h` | 分区布局，改完要同步两个 `Link.ld` |
+| 宏                                          | 默认                  | 作用                                             |
+| ------------------------------------------- | --------------------- | ------------------------------------------------ |
+| `BOOT_PRODUCT_ID`                           | `0x0000`              | 产品 ID，`INFO` 回显                             |
+| `BOOT_VERSION_MAJOR` / `BOOT_VERSION_MINOR` | `1` / `0`             | boot 版本，`INFO` 回显                           |
+| `BOOT_USB_PID`                              | `0xFE0D`              | boot 的 USB PID（多产品插同一台 PC 时用它区分）  |
+| `IMG_HMAC_KEY`                              | 开发默认 32 字符      | HMAC-SHA256 密钥，ASCII，必须 32 字符            |
+| `IMG_AES_KEY`                               | 开发默认 16 字符      | AES-128 密钥，ASCII，必须 16 字符                |
+| `IMG_KEY_FILE`                              | —                     | `#include` 一个密钥文件（随机二进制 key 用这个） |
+| `IMG_BOOT_SIZE` / `IMG_SLOT_*` 等           | 见 `shared/img_hdr.h` | 分区布局，改完要同步两个 `Link.ld`               |
 
 前三项在 `boot/User/boot_info.h`（`#ifndef` 包着），key 三项在 `boot/User/img_key.c`。
 
@@ -373,6 +375,40 @@ python tools/iap_flash.py --port COM61 --image build/app_enc.img
 ```
 
 `app_iap_request()` 写 `UPGRADE` flag 到 `0xF100` 再复位，boot 见 flag 即停在升级模式。
+
+---
+
+### 7.4 工厂镜像 `factory.bin`（调试器一次刷完）
+
+WCH 的 OpenOCD flash 驱动在 `program` 之前会**整片擦除**（实测：只写 `0x0` 的 boot，
+`0xF000` 的头页和 `0xF100` 的 flag 也会被清掉）。所以调试器侧不存在"只刷 app"，
+要刷就是一整片：
+
+```sh
+python tools/mkfactory.py --boot build/boot/boot.bin \
+                          --app build/app.img -o build/factory.bin
+sh tools/flash.sh factory build/factory.bin
+```
+
+`factory.bin` 是 61952 B 的稠密镜像（`0x0000..0xF1FF`，空档填 `0xFF`）：
+
+| 偏移     | 内容                                   |
+| -------- | -------------------------------------- |
+| `0x0000` | boot.bin（不足 10 KB 补 `0xFF`）       |
+| `0x2800` | app 明文 payload（加密镜像会先解出来） |
+| `0xF000` | 128 B 镜像头 + `0xFF` 填充             |
+| `0xF100` | flag 页，`state = VALID`               |
+
+同时输出 `<stem>_payload.bin` 和 `<stem>_meta.bin`（512 B），给需要分区写入的烧录器。
+`--hex` 可额外生成 Intel HEX。刷完直接是"能启动"的状态，不需要再走 USB。
+
+三种烧录方式一览：
+
+```sh
+sh tools/flash.sh factory build/factory.bin        # 调试器：整片（生产/换机）
+sh tools/flash.sh boot    build/boot/boot.bin      # 调试器：只刷 boot，之后靠 USB 装 app
+python tools/iap_flash.py --port COM61 --image build/app.img   # USB：只换应用
+```
 
 ---
 
@@ -528,6 +564,7 @@ sh tests/run.sh
 | 镜像校验 + 跳转 | `img_install.c` / `boot_ctrl.c`      | 整片复验、软件中断跳转（绕开 `csrw 0xbc0` 的坑）       |
 | 主机工具        | `tools/iap_pack.py` / `iap_flash.py` | 打包/签名/加密/校验/下发，纯 Python + pyserial         |
 | 免硬件测试      | `tests/run.sh`                       | 模拟 flash（含锁定语义）+ C/Python 交叉校验            |
+| 集成示例        | `EXAM/APPLICATION/WS2812_Panel_IAP`   | 灯带 App 接上 boot 的完整例子：`0x2800` 链接 + `0x20 UPGRADE` |
 
 ### 13.2 换到别的 CH32 型号要改哪里
 
