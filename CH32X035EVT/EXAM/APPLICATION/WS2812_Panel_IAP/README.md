@@ -33,8 +33,8 @@ sh tools/build.sh --tssop20    # TSSOP20：WS2812 = PC18，日志编译掉
 
 | 版本 | WS2812 脚 | 调试串口 | flash | RAM |
 | --- | --- | --- | --- | --- |
-| LQFP48 | PC7（PIOC 重映射，SDI 保留） | PB10 | 27024 B | 8284 B |
-| TSSOP20 | **PC18**（SDI 失效） | 无（`printf` 编译掉） | **20076 B** | 8144 B |
+| LQFP48 | PC7（PIOC 重映射，SDI 保留） | PB10 | 26812 B | 8284 B |
+| TSSOP20 | **PC18**（SDI 失效） | 无（`printf` 编译掉） | **19936 B** | 8144 B |
 
 TSSOP20 的代价和应对（调试口、串口取舍）见 [`PINMUX.md`](PINMUX.md)。
 
@@ -84,6 +84,25 @@ sh tools/build.sh --standalone
 > （实测：只写 `0x0` 的 boot 也会把 `0xF000` 的头页/flag 冲掉）。所以调试器侧永远用
 > `factory.bin`；只想换应用就走 USB。
 
+## 进入升级模式的唯一入口：命令
+
+App 里**没有**按键升级手势，升级只从 USB 命令进入：
+
+```sh
+python ../IAP_USB_SIGNED/tools/iap_flash.py --port COM62 --reboot-to-boot
+# app 回 ACK -> 写 0xF100 的 UPGRADE flag -> 复位 -> 出现 1A86:FE0D
+```
+
+或者主机直接用帧格式发 `0x20`（`A5 5A 20 00 00 <crc8>`），效果一样。
+按键仍然只管"切特效 / 切模式"。
+
+> **没有"上电按住按键停在 boot"这回事**。boot 的判断只有两条：
+> flag 页是 `UPGRADE`、或者镜像校验没过。正常启动时的兜底窗口是
+> "USB 枚举后 1.2 s（`BOOT_STAY_WINDOW_MS`），期间主机只要发 `BEGIN`
+> 就留在升级模式"，超时即跳转。
+> 所以 app 若在 USB 起来之前就崩了、且没赶到那 1.2 s，只能靠调试器
+> （TSSOP20 上 SDI 已被 WS2812 占用）——见 `PINMUX.md`。
+
 ## 协议
 
 帧格式和 boot 完全一致（`A5 5A | CMD | LEN | payload | CRC8`），原有命令全部保留，
@@ -95,38 +114,12 @@ sh tools/build.sh --standalone
 
 因为格式一致，`tools/wsp_cdc.py` 和 `iap_flash.py --reboot-to-boot` 都能直接用。
 
-## 按键手势（PA0）
-
-| 手势 | 动作 |
-| --- | --- |
-| 短按（< 1.2 s 松开） | 下一个特效 / 下一个画面 |
-| 长按（1.2–3.0 s 松开） | 切换 STRIP <-> PANEL |
-| **按住 ≥ 3 s** | **进入升级模式**：灯带闪一下暗蓝，写 UPGRADE flag 并复位，随后出现 boot 端口 `1A86:FE0D` |
-
-长按改成**松手时**才触发，所以按住 3 s 的升级手势不会先把模式切走。
-阈值都在 `wsp_config.h`：
-
-```c
-#define WSP_BTN_LONG_MS         1200   /* 短按 / 长按分界 */
-#define WSP_BTN_UPGRADE_MS      3000   /* 0 = 关闭升级手势 */
-```
-
-这是 TSSOP20 上最实用的入口：那颗芯片用 PC18 输出 WS2812，SDI 调试口被占，
-现场没有调试器也只需要按住按键 3 s 就能切到升级模式，然后：
-
-```sh
-python ../IAP_USB_SIGNED/tools/iap_flash.py --port COMx --image build/panel.img
-```
-
-主机正在推流（USB 独占屏幕）时按键同样有效，固件在那条分支里也会轮询按键。
-
-
 ## 尺寸（16×16 默认几何）
 
 | 封装 | flash（`.bin`） | 占 50 KB 槽 | RAM（data+bss，含 2K 栈） | 占 16 KB |
 | --- | --- | --- | --- | --- |
-| LQFP48 | 27024 B | 52% | 8284 B | 51% |
-| TSSOP20 | 20076 B | 39% | 8144 B | 50% |
+| LQFP48 | 26812 B | 52% | 8284 B | 51% |
+| TSSOP20 | 19936 B | 39% | 8144 B | 50% |
 
 16×32 几何：LQFP48 26908 B / RAM 11356 B；TSSOP20 约 20 KB / RAM 11216 B，均在预算内。
 `Ld/Link.ld` 里有 `ASSERT(_ebss <= ...)`，溢出会直接编译失败。

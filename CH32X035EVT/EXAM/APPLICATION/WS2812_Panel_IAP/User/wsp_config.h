@@ -83,13 +83,6 @@
 #define WSP_BTN_DEBOUNCE_MS     20
 #define WSP_BTN_LONG_MS         1200
 
-/* Hold this long and the app hands over to the bootloader (writes the UPGRADE
- * flag page and resets), which is the only way to start an update on TSSOP20
- * where the SDI debug pins are gone.  0 disables the gesture. */
-#ifndef WSP_BTN_UPGRADE_MS
-#define WSP_BTN_UPGRADE_MS      3000
-#endif
-
 /*---------------------------------------------------------------------------
  * Segment engine (WS2812FX style)
  *---------------------------------------------------------------------------*/

@@ -23,9 +23,6 @@ void    button_poll(void);
 uint8_t button_short(void);
 uint8_t button_long(void);
 
-/* held past WSP_BTN_UPGRADE_MS: ask the bootloader to take over */
-uint8_t button_upgrade(void);
-
 #ifdef __cplusplus
 }
 #endif
