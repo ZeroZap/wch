@@ -77,8 +77,11 @@ uint8_t boot_button_held(void)
 #endif
 }
 
-void SW_Handler(void) __attribute__((interrupt("WCH-Interrupt-fast")));
-
+/* The vector table is written in startup_ch32x035.S, so LTO must not
+ * internalize this symbol: without externally_visible the SW interrupt would
+ * fall back to the weak "j ." stub and the jump to the app would hang.
+ * The attributes have to sit on the definition, a prototype is not enough. */
+__attribute__((interrupt("WCH-Interrupt-fast"), used, externally_visible))
 void SW_Handler(void)
 {
     __asm volatile("li a6, 0x2800");

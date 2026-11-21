@@ -234,16 +234,33 @@ memcpy              178   被 sha256/aes/安装器共用
    省掉了这一步；`app/User` 的拷贝保持 vendor 原样。
 2. `-Os -msave-restore -ffunction-sections -fdata-sections` + `--gc-sections`
    已经带走所有没用到的外设库函数（`usb_cdc_log` 等）。
-3. 可选 **LTO**：`LTO=1 sh tools/build.sh boot` → text 9560 / data 68 = **9628 B**
+3. **LTO 这条路走不通**（试过，见下），构建脚本里已经去掉这个开关。
    （再省 336 B，余量回到 612 B），默认不开。
 
 现在 9964 B，**10 KB 硬上限只剩 276 B**：`boot/Ld/Link.ld` 的 `LENGTH = 10K`
 和 `ASSERT(_eitcm <= 0x2800)` 会让超限直接编译失败，不会悄悄压到 app 槽。
-想要更多余量就 `LTO=1 sh tools/build.sh boot`（9628 B，余量 612 B）。
+要更多余量只能砍功能：去掉 `IAP_CMD_READ`（主机回读）约 −150 B，去掉 `IAP_CMD_ERASE` 约 −80 B，或不做加密（−1.1 KB）。
 
 如果哪天还要再腾空间，代价最小的是：`ERASE`/`READ` 调试命令（~0.3 KB）、
 `usb_cdc_log`（未链接）、AES（不做加密则 −1.1 KB text、−176 B 密钥调度）、
 把 `GPIO_Init` 换成直接写寄存器（~0.4 KB）。
+
+
+### 5.3 为什么没开 LTO
+
+`-flto` 能把 boot 压到 9628 B（省 336 B），但**上板跑不起来**：链接阶段
+`startup_ch32x035.S` 里的 **weak** 向量入口会覆盖 C 里的 strong 定义，
+`SW_Handler` / `USBFS_IRQHandler` 被丢弃，中断落到 weak 的 `j .` 死循环。
+
+实测现象：下载后没有任何 USB 端口，调试器读到
+`mcause = 0x8000000e`（软件中断）、`pc` 停在 weak 处理器的 `j .`。
+C 侧已经给这两个函数加了 `__attribute__((used, externally_visible))`，
+但 GCC 8.2 的 LTO 仍然在符号消解时选了 weak 那份，所以这个开关被移除，
+`tools/build.sh` 不再接受 `LTO`。
+
+`.o` 里符号是对的（`nm boot_ctrl.o` → `T SW_Handler`），问题出在链接，
+不是代码。要真正用上 LTO 得换更新的 WCH 工具链再验证一遍。
+
 
 ---
 
@@ -258,7 +275,7 @@ sh tools/build.sh app
 
 工具链自动查找 MounRiver Studio 的 `riscv-none-embed-gcc`，也可以用
 `RISCV_GCC_BIN=/path/to/bin` 指定。产物在 `build/boot/`、`build/app/`。
-`LTO=1 sh tools/build.sh boot` 可再省 ~340 B（约 9448 B）。
+（没有再开 LTO，原因见 §5.3。）
 
 ### 6.1 每个产品一份 boot（版本 / 产品 ID / key / USB PID 全部编译期可配）
 

@@ -73,14 +73,6 @@ CFLAGS="$ARCH -msmall-data-limit=8 -msave-restore -Os -fmessage-length=0 \
 -Wunused -Wuninitialized -g -std=gnu99 $EXTRA"
 INCS="-I$SRCDIR -I$PROJ/shared -I$SRC/Core -I$SRC/Debug -I$SRC/Peripheral/inc"
 
-# LTO=1 links the whole program at once; measured on the bootloader it saves
-# about 340 bytes (9840 -> ~9500) for a slightly slower build.  Off by default.
-if [ "$LTO" = "1" ]; then
-    CFLAGS="$CFLAGS -flto"
-    LF="-flto"
-    echo "lto      : on"
-fi
-
 rm -rf "$OUT"
 mkdir -p "$OUT"
 
@@ -90,7 +82,7 @@ done
 riscv-none-embed-gcc $CFLAGS $INCS -c "$SRC/Startup/startup_ch32x035.S" \
     -o "$OUT/startup_ch32x035.o"
 
-riscv-none-embed-gcc $ARCH -msmall-data-limit=8 -msave-restore -Os $LF \
+riscv-none-embed-gcc $ARCH -msmall-data-limit=8 -msave-restore -Os \
     -T "$PROJ/$TARGET/Ld/Link.ld" -nostartfiles -Xlinker --gc-sections \
     -Wl,-Map,"$OUT/$TARGET.map" --specs=nano.specs --specs=nosys.specs \
     "$OUT"/*.o -o "$OUT/$TARGET.elf"

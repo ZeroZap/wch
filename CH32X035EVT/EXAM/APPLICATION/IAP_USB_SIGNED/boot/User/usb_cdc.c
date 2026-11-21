@@ -56,7 +56,9 @@ static volatile uint8_t ep3_busy;
 /* CDC line coding, only stored so the host's requests are accepted */
 static uint8_t line_coding[8] = { 0x00, 0xC2, 0x01, 0x00, 0x00, 0x00, 0x08, 0x00 };
 
+/* referenced from the assembly vector table: keep the name under LTO */
 void USBFS_IRQHandler(void) __attribute__((interrupt("WCH-Interrupt-fast")));
+void USBFS_IRQHandler(void) __attribute__((used, externally_visible));
 
 /*---------------------------------------------------------------------------
  * init
