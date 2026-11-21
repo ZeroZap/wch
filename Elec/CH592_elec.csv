@@ -1,0 +1,36 @@
+﻿model,category,item,mode,symbol,condition,min,typ,max,unit,source_page,note
+CH592,flash,页大小,,page,,,256,,B,123,
+CH592,flash,块大小,,block,,,4096,,B,123,
+CH592,flash,最小写入单位,,min_write,,,4,,B,123,
+CH592,flash,页编程时间,,tprog,,,1 / 2 / 4 ms（单次字编程）,,,123,
+CH592,flash,扇区擦除时间,,terase_sector,,,6 / 16 / 30 ms,,,123,
+CH592,flash,擦写寿命,,NEND,,,100K（最小）/ 1000K（抽测）@5–45 ℃；50K/200K @-40–85 ℃,,,123,
+CH592,flash,数据保持,,tRET,,,20 年,,,123,
+CH592,flash,编程粒度/注意事项,,note,,,CodeFlash 按字（4 B）编程，256 B/页写，4 KB/块擦（`CH592EVT/EXAM/SRC/StdPeriphDriver/inc/ISP592.h`）；DataFlash 可按字节读写。,,,123,
+CH592,low_power,低功耗电流,Run,IDD,Fsys 8 MHz，Flash 运行；直通电源,,3.2,,mA,121,
+CH592,low_power,低功耗电流,Run,IDD,Fsys 16 MHz，Flash 运行；直通电源,,3.4,,mA,121,
+CH592,low_power,低功耗电流,Run,IDD,Fsys 48 MHz，Flash 运行；直通电源,,12.9,,mA,121,
+CH592,low_power,低功耗电流,Run,IDD,Fsys 8 MHz，RAM 运行；DC-DC 使能,,1.1,,mA,121,
+CH592,low_power,低功耗电流,Run,IDD,Fsys 48 MHz，RAM 运行；DC-DC 使能,,2.4,,mA,121,
+CH592,low_power,低功耗电流,Idle,IDD,开启各模块时钟组合；—,,1.3,,mA,122,
+CH592,low_power,低功耗电流,Halt,IDD,关闭所有时钟；—,,180,,uA,122,
+CH592,low_power,低功耗电流,Sleep,IDD,PMU + 内核 + RAM2K；GPIO 唤醒，无 RTC,,0.7,,uA,122,表 20-3 区间为 0.8–2.5 uA
+CH592,low_power,低功耗电流,Sleep,IDD,多种组合；参考表 5-3,0.8,,2.5,uA,122,
+CH592,low_power,低功耗电流,Shutdown,IDD,仅 PMU；GPIO 唤醒后复位，无 RTC,,0.4,,uA,122,表 20-3 区间为 0.3–1.3 uA
+CH592,low_power,低功耗电流,Shutdown,IDD,多种组合；参考表 5-3,0.3,,1.3,uA,122,
+CH592,wakeup,低功耗唤醒时间,Idle,tWU,从空闲模式退出,0.6,1,3,us,123,
+CH592,wakeup,低功耗唤醒时间,Halt,tWU,TSUHSE + 80 us,TSUHSE+1,TSUHSE+80,TSUHSE+150,us,123,TSUHSE 典型 200 us
+CH592,wakeup,低功耗唤醒时间,Sleep,tWU,TSUHSE + 300 us,TSUHSE+1,TSUHSE+300,TSUHSE+400,us,123,TSUHSE 典型 200 us
+CH592,wakeup,低功耗唤醒时间,Shutdown,tWU,TSUHSE + 1 ms,TSUHSE+0.4,TSUHSE+1,TSUHSE+5,ms,123,TSUHSE 典型 200 us
+CH592,abs_max,工作环境温度,,TA,X/F/D、F/D/R / CH592A,-40,,85 / 105,℃,121,
+CH592,abs_max,系统电源,,VDD33,—,-0.4,,4.0,V,121,
+CH592,abs_max,I/O 电源,,VIO33,—,-0.4,,4.0,V,121,
+CH592,abs_max,ESD,,VESD,I/O / ANT,4K / 2K,,,V,124,
+CH592,supply,系统电源,,VDD33,X/F/D、CH591F / A、CH591D/R,1.75 / 2.3,3.3,3.6,V,121,
+CH592,supply,最高系统主频,,Fsys,—,,,80,MHz,EVT CH592SFR.h,
+CH592,clock,外部高速晶振,,FHSE,—,,32,,MHz,123,
+CH592,clock,外部晶振启动到可用,,TSUHSE,—,80,200,500,us,123,
+CH592,clock,内部低速 RC,,FLSI,软件校准后,32726,32768,32810,Hz,123,
+CH592,clock,PLL 输出,,FPLL,—,,480,,MHz,123,
+CH592,reset,低压复位阈值,,Vlvr,X/F/D、CH591F / A、CH591D/R,1.3 / 1.8,1.5 / 2.05,1.75 / 2.3,V,121,
+CH592,analog,ADC 参考电压,,Vref,VINTA 引脚,1.035,1.05,1.065,V,121,
