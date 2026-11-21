@@ -62,12 +62,12 @@ TSSOP20 上没有 PC7，PIOC 的 `IO0/IO1` 只引出到 PC18 / PC19，
 | 需要单步调试 | 用 LQFP48 开发板 + `sh tools/build.sh --standalone`（链接在 `0x0`） |
 | 必须在 TSSOP20 上调试 | 只能在上电瞬间抢连；或者把 PIOC 换成软件翻转（本工程未实现） |
 
-> boot **没有**"上电按住按键就停留"的逻辑（只有 flag 页 + 1.2 s 升级窗口）。
-> 也就是说 app 如果在 USB 枚举前就崩，且没赶上那个窗口，TSSOP20 上就只能靠
-> 调试器——而 SDI 已被 WS2812 占用。要加这道保险，有两个方向：
-> 1. boot 里读按键：上电瞬间按住 → 停在升级模式（`boot/Ld/Link.ld` 只剩 400 B 余量，
->    够用但要实测）；
-> 2. app 启动自检失败时自己写 `UPGRADE` flag 再复位（不是回滚，只是"起不来就进 boot"）。
+> **上电按住 PA0 → 停在 boot**（已实现，占 124 B，boot 现在 9964 / 10240 B）。
+> 这是 TSSOP20 上最可靠的现场手段：SDI 被 WS2812 占用时，只要还能按键，
+> 就能把设备拉回升级模式，不需要调试器也不需要 app 是好的。
+>
+> 宏在 `IAP_USB_SIGNED/boot/User/boot_info.h`：`BOOT_BUTTON_STAY` / `BOOT_BUTTON_PORT` /
+> `BOOT_BUTTON_PIN`。若你的板子把 PA0 外部拉低，记得设 `BOOT_BUTTON_STAY=0`。
 
 ### 3.2 没有调试串口
 

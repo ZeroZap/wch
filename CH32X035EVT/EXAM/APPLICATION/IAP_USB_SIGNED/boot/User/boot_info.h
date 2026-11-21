@@ -21,6 +21,8 @@
 #ifndef __BOOT_INFO_H
 #define __BOOT_INFO_H
 
+#include "ch32x035.h"
+
 /* 0x0000 is reserved for development builds */
 #ifndef BOOT_PRODUCT_ID
 #define BOOT_PRODUCT_ID         0x0000u
@@ -38,6 +40,21 @@
  * own PID if several of them are plugged into the same PC. */
 #ifndef BOOT_USB_PID
 #define BOOT_USB_PID            0xFE0Du
+#endif
+
+/* Hold this pin low while resetting to stay in the bootloader.
+ *
+ * It has to be a pin that is high (pull-up) in normal operation: PA0 with the
+ * internal pull-up is the user button on the WS2812_Panel_IAP board.  Set
+ * BOOT_BUTTON_STAY to 0 if your hardware ties that pin low. */
+#ifndef BOOT_BUTTON_STAY
+#define BOOT_BUTTON_STAY        1
+#endif
+#ifndef BOOT_BUTTON_PORT
+#define BOOT_BUTTON_PORT        GPIOA
+#endif
+#ifndef BOOT_BUTTON_PIN
+#define BOOT_BUTTON_PIN         GPIO_Pin_0
 #endif
 
 #endif /* __BOOT_INFO_H */

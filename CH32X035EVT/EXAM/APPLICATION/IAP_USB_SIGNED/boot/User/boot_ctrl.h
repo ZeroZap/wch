@@ -20,4 +20,9 @@ void boot_jump_to_app(void) __attribute__((noreturn));
  * Also called at the start of boot_jump_to_app(). */
 void boot_usb_deinit(void);
 
+/* 1 when BOOT_BUTTON_PIN is held low at reset, i.e. the user wants to stay in
+ * the bootloader.  Costs ~10 ms on a normal boot, ~60 ms when the pin is low.
+ * Always 0 when BOOT_BUTTON_STAY is 0. */
+uint8_t boot_button_held(void);
+
 #endif /* __BOOT_CTRL_H */

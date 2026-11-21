@@ -58,7 +58,7 @@ IAP_USB_SIGNED/
 
 | 区域         | 偏移          | 大小   | 说明                               |
 | ------------ | ------------- | ------ | ---------------------------------- |
-| bootloader   | `0x0000_0000` | 10 KB  | 本工程 boot（实测 9840 B，含加密） |
+| bootloader   | `0x0000_0000` | 10 KB | 本工程 boot（实测 9964 B，含加密） |
 | app slot     | `0x0000_2800` | 50 KB  | 应用镜像，链接地址 `0x2800`        |
 | image header | `0x0000_F000` | 256 B  | 128 B 头 + 0xFF 填充               |
 | flag page    | `0x0000_F100` | 256 B  | 启动决策记录                       |
@@ -183,13 +183,13 @@ sha256 = SHA-256(明文 payload)
 
 | 项目             | 结果                                                                        |
 | ---------------- | --------------------------------------------------------------------------- |
-| boot 尺寸        | text 9792 / data 48 / bss 4040（含 2K 栈），flash 共 **9840 / 10240 B**     |
+| boot 尺寸        | text 9916 / data 48 / bss 4040（含 2K 栈），flash 共 **9964 / 10240 B** |
 | app 尺寸         | text 5456 / data 48 / bss 2404，flash 共 5504 / 51200 B                     |
 | `INFO`           | 协议 v2：boot 1.0 / product 0x0000 / PID 0xFE0D，load `0x2800`，slot 51200  |
 | 明文 5504 B 升级 | DATA ≈ 20.7 kB/s，`END` 16 ms                                               |
 | 加密 5504 B 升级 | `BEGIN` 16 ms（6 扇区），DATA ≈ 13.6 kB/s，`END` 16 ms                      |
 | 满 40 KB 镜像    | `BEGIN` 156 ms（40 扇区），DATA ≈ 21.5 kB/s（40 KB ≈ 1.9 s），`END` 16 ms   |
-| 10K / 50K 分区   | boot 9840 B（占 96%）、app 从 `0x2800` 起、`INFO` 报协议 v2                 |
+| 10K / 50K 分区   | boot 9964 B（占 97%）、app 从 `0x2800` 起、`INFO` 报协议 v2 |
 | 加密镜像落盘     | `.img` payload 是密文；flash `0x2800..` 与 `app.bin` **逐字节相同**（明文） |
 | 跳转             | boot 端口 `1A86:FE0D` 消失，app 端口 `1A86:FE0E` 出现，PB0 500 ms 闪烁      |
 | app → boot       | `--reboot-to-boot` 写 flag 并复位，重新出现 `FE0D`                          |
@@ -205,9 +205,9 @@ sha256 = SHA-256(明文 payload)
 | ------------------------ | ---------------- | --------------------------------------- |
 | `.init`（启动跳板）      | 4                |                                         |
 | `.vector`（中断向量表）  | 252              |                                         |
-| `.text`（代码 + 常量表） | 9536             | 含 AES sbox / SHA K 表                  |
+| `.text`（代码 + 常量表） | 9916 | 含 AES sbox / SHA K 表 |
 | `.data`（LMA 在 flash）  | 48               |                                         |
-| **flash 合计**           | **9840**         | **96.1% of 10 KB**                      |
+| **flash 合计** | **9964** | **97.3% of 10 KB** |
 | `.bss`                   | 1992             | 含 `g_img` 872、`g_pg/g_pt/g_rd` 各 256 |
 | `.stack`                 | 2048             |                                         |
 | **RAM 合计**             | **4088 / 16384** | **25.0%**                               |
@@ -234,11 +234,12 @@ memcpy              178   被 sha256/aes/安装器共用
    省掉了这一步；`app/User` 的拷贝保持 vendor 原样。
 2. `-Os -msave-restore -ffunction-sections -fdata-sections` + `--gc-sections`
    已经带走所有没用到的外设库函数（`usb_cdc_log` 等）。
-3. 可选 **LTO**：`LTO=1 sh tools/build.sh boot` → 约 9448 B（再省 ~340 B），默认不开。
+3. 可选 **LTO**：`LTO=1 sh tools/build.sh boot` → text 9560 / data 68 = **9628 B**
+   （再省 336 B，余量回到 612 B），默认不开。
 
-现在 9840 B，**10 KB 硬上限只剩 400 B**：`boot/Ld/Link.ld` 的 `LENGTH = 10K`
+现在 9964 B，**10 KB 硬上限只剩 276 B**：`boot/Ld/Link.ld` 的 `LENGTH = 10K`
 和 `ASSERT(_eitcm <= 0x2800)` 会让超限直接编译失败，不会悄悄压到 app 槽。
-想要更多余量就 `LTO=1 sh tools/build.sh boot`（约 9448 B）。
+想要更多余量就 `LTO=1 sh tools/build.sh boot`（9628 B，余量 612 B）。
 
 如果哪天还要再腾空间，代价最小的是：`ERASE`/`READ` 调试命令（~0.3 KB）、
 `usb_cdc_log`（未链接）、AES（不做加密则 −1.1 KB text、−176 B 密钥调度）、
@@ -272,6 +273,8 @@ sh tools/build.sh app
 | `IMG_HMAC_KEY`                              | 开发默认 32 字符      | HMAC-SHA256 密钥，ASCII，必须 32 字符            |
 | `IMG_AES_KEY`                               | 开发默认 16 字符      | AES-128 密钥，ASCII，必须 16 字符                |
 | `IMG_KEY_FILE`                              | —                     | `#include` 一个密钥文件（随机二进制 key 用这个） |
+| `BOOT_BUTTON_STAY` | `1` | 上电时该引脚为低 → 停在升级模式；设 0 关闭 |
+| `BOOT_BUTTON_PORT` / `BOOT_BUTTON_PIN` | `GPIOA` / `GPIO_Pin_0` | 参与上电判定的引脚（PA0 = app 的用户按键） |
 | `IMG_BOOT_SIZE` / `IMG_SLOT_*` 等           | 见 `shared/img_hdr.h` | 分区布局，改完要同步两个 `Link.ld`               |
 
 前三项在 `boot/User/boot_info.h`（`#ifndef` 包着），key 三项在 `boot/User/img_key.c`。
@@ -416,6 +419,7 @@ python tools/iap_flash.py --port COM61 --image build/app.img   # USB：只换应
 
 ```
 复位
+ ├─ 读 BOOT_BUTTON_PIN（默认 PA0）：按住低电平 → 直接留在升级模式
  ├─ 读 flag 页（只用于判断"是否被要求升级"）
  ├─ 校验 header + 整片 SHA-256 / CRC-32 / HMAC（按 256 B 页流式，直接读 flash）
  │
@@ -513,7 +517,7 @@ sh tests/run.sh
 
 全部已在本机跑通（CH32X035C-R0-1V2 + WCH-LinkE）：
 
-- [x] WCH-Link 写 boot（10 KB 上限内 9840 B），端口出现 `1A86:FE0D`
+- [x] WCH-Link 写 boot（10 KB 上限内 9964 B），端口出现 `1A86:FE0D`
 - [x] `--info` 返回协议 v2 / boot 1.0 / product 0x0000 / slot 51200
 - [x] 明文 5504 B 安装 → `BEGIN/DATA/END` 全 OK → 跳转 → `1A86:FE0E`
 - [x] 加密 5504 B 安装 → 同上（`BEGIN` 16 ms，`END` 16 ms）
@@ -525,6 +529,8 @@ sh tests/run.sh
 - [x] `-DIMG_HMAC_KEY/IMG_AES_KEY` 编出来的 boot：用匹配 key 打包 → 安装成功、跳转正常
 - [x] 同一个 boot 用**不匹配** key 打包 → `END` 返回 `HMAC mismatch (wrong key?)`，state 保持 NONE
 - [x] `-DIMG_KEY_FILE`（`gen_key.py` 生成的二进制 key 文件）编出来的 boot 正常工作
+- [x] 上电不按键（PA0 上拉）→ 正常校验并跳转，没有误判
+- [ ] 上电按住 PA0 → 停在 `FE0D`（已实现，需要手指实测）
 - [x] 反复升级、加密/明文混用、ABORT
 
 未做：实测启动校验耗时（需要 GPIO 打点或调试器计时），

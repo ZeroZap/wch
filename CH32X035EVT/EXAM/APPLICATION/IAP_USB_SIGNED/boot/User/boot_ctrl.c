@@ -16,6 +16,7 @@
  * microcontroller manufactured by Nanjing Qinheng Microelectronics.
  *******************************************************************************/
 #include "boot_ctrl.h"
+#include "boot_info.h"
 #include "img_hdr.h"
 #include "usb_cdc.h"
 #include "ch32x035.h"
@@ -41,6 +42,39 @@ void boot_usb_deinit(void)
     USBFSD->INT_FG    = 0xFF;
 
     AFIO->CTLR &= ~USB_IOEN;
+}
+
+uint8_t boot_button_held(void)
+{
+#if BOOT_BUTTON_STAY
+    GPIO_InitTypeDef g = {0};
+    uint32_t i;
+    uint32_t low = 0u;
+
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE);
+
+    g.GPIO_Pin  = BOOT_BUTTON_PIN;
+    g.GPIO_Mode = GPIO_Mode_IPU;
+    GPIO_Init(BOOT_BUTTON_PORT, &g);
+
+    Delay_Ms(10);                       /* let the pull-up settle */
+
+    if (GPIO_ReadInputDataBit(BOOT_BUTTON_PORT, BOOT_BUTTON_PIN) != 0) {
+        return 0u;                      /* not pressed: the common case */
+    }
+
+    /* confirm, so a glitch on a floating pin does not trap the bootloader */
+    for (i = 0u; i < 10u; i++) {
+        if (GPIO_ReadInputDataBit(BOOT_BUTTON_PORT, BOOT_BUTTON_PIN) == 0) {
+            low++;
+        }
+        Delay_Ms(5);
+    }
+
+    return (low >= 8u) ? 1u : 0u;
+#else
+    return 0u;
+#endif
 }
 
 void SW_Handler(void) __attribute__((interrupt("WCH-Interrupt-fast")));

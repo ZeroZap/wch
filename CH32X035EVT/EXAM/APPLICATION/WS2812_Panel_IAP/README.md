@@ -96,12 +96,20 @@ python ../IAP_USB_SIGNED/tools/iap_flash.py --port COM62 --reboot-to-boot
 或者主机直接用帧格式发 `0x20`（`A5 5A 20 00 00 <crc8>`），效果一样。
 按键仍然只管"切特效 / 切模式"。
 
-> **没有"上电按住按键停在 boot"这回事**。boot 的判断只有两条：
-> flag 页是 `UPGRADE`、或者镜像校验没过。正常启动时的兜底窗口是
-> "USB 枚举后 1.2 s（`BOOT_STAY_WINDOW_MS`），期间主机只要发 `BEGIN`
-> 就留在升级模式"，超时即跳转。
-> 所以 app 若在 USB 起来之前就崩了、且没赶到那 1.2 s，只能靠调试器
-> （TSSOP20 上 SDI 已被 WS2812 占用）——见 `PINMUX.md`。
+**上电按住按键（PA0）→ 停在 boot**，这是不依赖上位机的兜底入口：
+
+```
+断电 -> 按住 PA0 -> 上电 -> 松开
+   boot 读到 PA0 为低 -> 不跳 app -> 出现 1A86:FE0D
+```
+
+正常上电（不按键）时 boot 只多花约 10 ms 做这次判定。相关宏在
+`IAP_USB_SIGNED/boot/User/boot_info.h`：`BOOT_BUTTON_STAY`（默认 1）、
+`BOOT_BUTTON_PORT` / `BOOT_BUTTON_PIN`（默认 PA0）。
+
+boot 的其它判断还有：flag 页是 `UPGRADE`、或者镜像校验没过；
+以及正常启动时"USB 枚举后 1.2 s（`BOOT_STAY_WINDOW_MS`）内收到 `BEGIN`"。
+三层加起来，app 起不来时总能救回来，不需要调试器。
 
 ## 协议
 

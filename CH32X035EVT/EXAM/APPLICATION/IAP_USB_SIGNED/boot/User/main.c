@@ -83,6 +83,7 @@ int main(void)
     img_flag_t flag;
     uint8_t    have_flag;
     uint8_t    upgrade;
+    uint8_t    hold;
     uint8_t    usb_up = 0u;
     uint8_t    st;
 
@@ -90,12 +91,15 @@ int main(void)
     SystemCoreClockUpdate();
     Delay_Init();
 
+    /* holding BOOT_BUTTON_PIN low at reset keeps the bootloader in charge */
+    hold = boot_button_held();
+
     have_flag = img_load_flag(&flag);
     upgrade   = (uint8_t)(have_flag && (flag.state == IMG_STATE_UPGRADE));
 
     st = img_verify_stored();
 
-    if ((st == IAP_ST_OK) && !upgrade) {
+    if ((st == IAP_ST_OK) && !upgrade && !hold) {
         /* a good image is installed: give the host a chance to interfere, then
          * get out of the way */
         usb_cdc_init();
