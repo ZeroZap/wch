@@ -268,12 +268,22 @@ static void cmd_end(void)
 
 static void cmd_erase(void)
 {
-    uint8_t st = IAP_ST_OK;
+    uint8_t   st = IAP_ST_OK;
+    img_hdr_t hdr;
+    uint32_t  len = IMG_SLOT_SIZE;
 
     img_install_abort();
 
+    /* Products such as N1_Console put a game slot after the signed launcher.
+     * Erase only the installed launcher length when a valid header exists, so
+     * ERASE does not wipe the cartridge/game area; a corrupt/absent header
+     * falls back to the old full-slot erase for rescue. */
+    if (img_load_hdr(&hdr)) {
+        len = hdr.img_len;
+    }
+
     img_flash_unlock();
-    if (img_flash_erase_image(IMG_SLOT_SIZE) != 0) {
+    if (img_flash_erase_image(len) != 0) {
         st = IAP_ST_FLASH;
     }
     img_flash_lock();

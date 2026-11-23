@@ -58,7 +58,7 @@ IAP_USB_SIGNED/
 
 | 区域         | 偏移          | 大小   | 说明                               |
 | ------------ | ------------- | ------ | ---------------------------------- |
-| bootloader   | `0x0000_0000` | 10 KB | 本工程 boot（实测 9964 B，含加密） |
+| bootloader   | `0x0000_0000` | 10 KB  | 本工程 boot（实测 9980 B，含加密） |
 | app slot     | `0x0000_2800` | 50 KB  | 应用镜像，链接地址 `0x2800`        |
 | image header | `0x0000_F000` | 256 B  | 128 B 头 + 0xFF 填充               |
 | flag page    | `0x0000_F100` | 256 B  | 启动决策记录                       |
@@ -183,13 +183,13 @@ sha256 = SHA-256(明文 payload)
 
 | 项目             | 结果                                                                        |
 | ---------------- | --------------------------------------------------------------------------- |
-| boot 尺寸        | text 9916 / data 48 / bss 4040（含 2K 栈），flash 共 **9964 / 10240 B** |
+| boot 尺寸        | text 9932 / data 48 / bss 4040（含 2K 栈），flash 共 **9980 / 10240 B**     |
 | app 尺寸         | text 5456 / data 48 / bss 2404，flash 共 5504 / 51200 B                     |
 | `INFO`           | 协议 v2：boot 1.0 / product 0x0000 / PID 0xFE0D，load `0x2800`，slot 51200  |
 | 明文 5504 B 升级 | DATA ≈ 20.7 kB/s，`END` 16 ms                                               |
 | 加密 5504 B 升级 | `BEGIN` 16 ms（6 扇区），DATA ≈ 13.6 kB/s，`END` 16 ms                      |
 | 满 40 KB 镜像    | `BEGIN` 156 ms（40 扇区），DATA ≈ 21.5 kB/s（40 KB ≈ 1.9 s），`END` 16 ms   |
-| 10K / 50K 分区   | boot 9964 B（占 97%）、app 从 `0x2800` 起、`INFO` 报协议 v2 |
+| 10K / 50K 分区   | boot 9980 B（占 97%）、app 从 `0x2800` 起、`INFO` 报协议 v2                 |
 | 加密镜像落盘     | `.img` payload 是密文；flash `0x2800..` 与 `app.bin` **逐字节相同**（明文） |
 | 跳转             | boot 端口 `1A86:FE0D` 消失，app 端口 `1A86:FE0E` 出现，PB0 500 ms 闪烁      |
 | app → boot       | `--reboot-to-boot` 写 flag 并复位，重新出现 `FE0D`                          |
@@ -205,9 +205,9 @@ sha256 = SHA-256(明文 payload)
 | ------------------------ | ---------------- | --------------------------------------- |
 | `.init`（启动跳板）      | 4                |                                         |
 | `.vector`（中断向量表）  | 252              |                                         |
-| `.text`（代码 + 常量表） | 9916 | 含 AES sbox / SHA K 表 |
+| `.text`（代码 + 常量表） | 9932             | 含 AES sbox / SHA K 表                  |
 | `.data`（LMA 在 flash）  | 48               |                                         |
-| **flash 合计** | **9964** | **97.3% of 10 KB** |
+| **flash 合计**           | **9980**         | **97.5% of 10 KB**                      |
 | `.bss`                   | 1992             | 含 `g_img` 872、`g_pg/g_pt/g_rd` 各 256 |
 | `.stack`                 | 2048             |                                         |
 | **RAM 合计**             | **4088 / 16384** | **25.0%**                               |
@@ -237,14 +237,13 @@ memcpy              178   被 sha256/aes/安装器共用
 3. **LTO 这条路走不通**（试过，见下），构建脚本里已经去掉这个开关。
    （再省 336 B，余量回到 612 B），默认不开。
 
-现在 9964 B，**10 KB 硬上限只剩 276 B**：`boot/Ld/Link.ld` 的 `LENGTH = 10K`
+现在 9980 B，**10 KB 硬上限只剩 260 B**：`boot/Ld/Link.ld` 的 `LENGTH = 10K`
 和 `ASSERT(_eitcm <= 0x2800)` 会让超限直接编译失败，不会悄悄压到 app 槽。
 要更多余量只能砍功能：去掉 `IAP_CMD_READ`（主机回读）约 −150 B，去掉 `IAP_CMD_ERASE` 约 −80 B，或不做加密（−1.1 KB）。
 
 如果哪天还要再腾空间，代价最小的是：`ERASE`/`READ` 调试命令（~0.3 KB）、
 `usb_cdc_log`（未链接）、AES（不做加密则 −1.1 KB text、−176 B 密钥调度）、
 把 `GPIO_Init` 换成直接写寄存器（~0.4 KB）。
-
 
 ### 5.3 为什么没开 LTO
 
@@ -260,7 +259,6 @@ C 侧已经给这两个函数加了 `__attribute__((used, externally_visible))`�
 
 `.o` 里符号是对的（`nm boot_ctrl.o` → `T SW_Handler`），问题出在链接，
 不是代码。要真正用上 LTO 得换更新的 WCH 工具链再验证一遍。
-
 
 ---
 
@@ -282,17 +280,17 @@ sh tools/build.sh app
 不做运行期配 key，产品身份全部编进 boot。**所有可变参数都支持 `-D` 传入**，
 一个源树就能出 N 个产品的 boot：
 
-| 宏                                          | 默认                  | 作用                                             |
-| ------------------------------------------- | --------------------- | ------------------------------------------------ |
-| `BOOT_PRODUCT_ID`                           | `0x0000`              | 产品 ID，`INFO` 回显                             |
-| `BOOT_VERSION_MAJOR` / `BOOT_VERSION_MINOR` | `1` / `0`             | boot 版本，`INFO` 回显                           |
-| `BOOT_USB_PID`                              | `0xFE0D`              | boot 的 USB PID（多产品插同一台 PC 时用它区分）  |
-| `IMG_HMAC_KEY`                              | 开发默认 32 字符      | HMAC-SHA256 密钥，ASCII，必须 32 字符            |
-| `IMG_AES_KEY`                               | 开发默认 16 字符      | AES-128 密钥，ASCII，必须 16 字符                |
-| `IMG_KEY_FILE`                              | —                     | `#include` 一个密钥文件（随机二进制 key 用这个） |
-| `BOOT_BUTTON_STAY` | `1` | 上电时该引脚为低 → 停在升级模式；设 0 关闭 |
-| `BOOT_BUTTON_PORT` / `BOOT_BUTTON_PIN` | `GPIOA` / `GPIO_Pin_0` | 参与上电判定的引脚（PA0 = app 的用户按键） |
-| `IMG_BOOT_SIZE` / `IMG_SLOT_*` 等           | 见 `shared/img_hdr.h` | 分区布局，改完要同步两个 `Link.ld`               |
+| 宏                                          | 默认                   | 作用                                             |
+| ------------------------------------------- | ---------------------- | ------------------------------------------------ |
+| `BOOT_PRODUCT_ID`                           | `0x0000`               | 产品 ID，`INFO` 回显                             |
+| `BOOT_VERSION_MAJOR` / `BOOT_VERSION_MINOR` | `1` / `0`              | boot 版本，`INFO` 回显                           |
+| `BOOT_USB_PID`                              | `0xFE0D`               | boot 的 USB PID（多产品插同一台 PC 时用它区分）  |
+| `IMG_HMAC_KEY`                              | 开发默认 32 字符       | HMAC-SHA256 密钥，ASCII，必须 32 字符            |
+| `IMG_AES_KEY`                               | 开发默认 16 字符       | AES-128 密钥，ASCII，必须 16 字符                |
+| `IMG_KEY_FILE`                              | —                      | `#include` 一个密钥文件（随机二进制 key 用这个） |
+| `BOOT_BUTTON_STAY`                          | `1`                    | 上电时该引脚为低 → 停在升级模式；设 0 关闭       |
+| `BOOT_BUTTON_PORT` / `BOOT_BUTTON_PIN`      | `GPIOA` / `GPIO_Pin_0` | 参与上电判定的引脚（PA0 = app 的用户按键）       |
+| `IMG_BOOT_SIZE` / `IMG_SLOT_*` 等           | 见 `shared/img_hdr.h`  | 分区布局，改完要同步两个 `Link.ld`               |
 
 前三项在 `boot/User/boot_info.h`（`#ifndef` 包着），key 三项在 `boot/User/img_key.c`。
 
@@ -495,7 +493,7 @@ CRC8: poly 0x07, init 0x00, 覆盖 CMD..PAYLOAD（不含同步字节）
 | `0x12` END   | →    | `hmac(32)`                                | status（写头页 + flag 页）                                                                                                                |
 | `0x13` ABORT | →    | —                                         | status                                                                                                                                    |
 | `0x14` JUMP  | →    | —                                         | status（先整片校验，通过才跳）                                                                                                            |
-| `0x15` ERASE | →    | —                                         | status（擦整个 app slot + 头 + flag）                                                                                                     |
+| `0x15` ERASE | →    | —                                         | status（有有效头时只擦 `hdr.img_len`，无头时整槽擦除）                                                                                    |
 | `0x16` READ  | →    | `addr(4) len(2)`                          | 原始 flash 数据                                                                                                                           |
 
 status：`0` OK、`1` CRC、`2` SHA-256、`3` HMAC、`4` 长度/状态、`5` flash 失败、`6` 无有效 App。
@@ -534,7 +532,7 @@ sh tests/run.sh
 
 全部已在本机跑通（CH32X035C-R0-1V2 + WCH-LinkE）：
 
-- [x] WCH-Link 写 boot（10 KB 上限内 9964 B），端口出现 `1A86:FE0D`
+- [x] WCH-Link 写 boot（10 KB 上限内 9980 B），端口出现 `1A86:FE0D`
 - [x] `--info` 返回协议 v2 / boot 1.0 / product 0x0000 / slot 51200
 - [x] 明文 5504 B 安装 → `BEGIN/DATA/END` 全 OK → 跳转 → `1A86:FE0E`
 - [x] 加密 5504 B 安装 → 同上（`BEGIN` 16 ms，`END` 16 ms）
@@ -578,16 +576,16 @@ sh tests/run.sh
 
 ### 13.1 已经可以直接复用的部分
 
-| 能力            | 位置                                 | 说明                                                   |
-| --------------- | ------------------------------------ | ------------------------------------------------------ |
-| USB CDC 设备层  | `boot/User/usb_cdc.c`（app 侧同款）  | EP0 标准/类请求、EP2 OUT、EP3 IN，免驱（`usbser.sys`） |
-| 帧协议 + CRC8   | `iap_proto.c` / `app_usb.c`          | 中断只攒字节、主循环执行命令，单命令槽 + 逐帧 ACK      |
-| Flash 封装      | `img_flash.c`                        | 256 B 页擦/编程、1 KB 扇区擦，全部回读校验             |
-| 密码学          | `sha256.c` / `aes.c`                 | 流式 SHA-256、HMAC-SHA256、AES-128-CTR（无外部依赖）   |
-| 镜像校验 + 跳转 | `img_install.c` / `boot_ctrl.c`      | 整片复验、软件中断跳转（绕开 `csrw 0xbc0` 的坑）       |
-| 主机工具        | `tools/iap_pack.py` / `iap_flash.py` | 打包/签名/加密/校验/下发，纯 Python + pyserial         |
-| 免硬件测试      | `tests/run.sh`                       | 模拟 flash（含锁定语义）+ C/Python 交叉校验            |
-| 集成示例        | `EXAM/APPLICATION/WS2812_Panel_IAP`   | 灯带 App 接上 boot 的完整例子：`0x2800` 链接 + `0x20 UPGRADE` |
+| 能力            | 位置                                 | 说明                                                          |
+| --------------- | ------------------------------------ | ------------------------------------------------------------- |
+| USB CDC 设备层  | `boot/User/usb_cdc.c`（app 侧同款）  | EP0 标准/类请求、EP2 OUT、EP3 IN，免驱（`usbser.sys`）        |
+| 帧协议 + CRC8   | `iap_proto.c` / `app_usb.c`          | 中断只攒字节、主循环执行命令，单命令槽 + 逐帧 ACK             |
+| Flash 封装      | `img_flash.c`                        | 256 B 页擦/编程、1 KB 扇区擦，全部回读校验                    |
+| 密码学          | `sha256.c` / `aes.c`                 | 流式 SHA-256、HMAC-SHA256、AES-128-CTR（无外部依赖）          |
+| 镜像校验 + 跳转 | `img_install.c` / `boot_ctrl.c`      | 整片复验、软件中断跳转（绕开 `csrw 0xbc0` 的坑）              |
+| 主机工具        | `tools/iap_pack.py` / `iap_flash.py` | 打包/签名/加密/校验/下发，纯 Python + pyserial                |
+| 免硬件测试      | `tests/run.sh`                       | 模拟 flash（含锁定语义）+ C/Python 交叉校验                   |
+| 集成示例        | `EXAM/APPLICATION/WS2812_Panel_IAP`  | 灯带 App 接上 boot 的完整例子：`0x2800` 链接 + `0x20 UPGRADE` |
 
 ### 13.2 换到别的 CH32 型号要改哪里
 
