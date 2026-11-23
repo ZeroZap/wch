@@ -1,0 +1,271 @@
+CH32x035 Evaluation Board Reference                                                       https://wch-ic.com
+
+                   CH32X035 Evaluation Board Reference
+
+                                                            Version: V1.3
+                                                         https://wch-ic.com
+
+1. Overview
+
+This evaluation board is applied to the development of the CH32X035 chip. The IDE uses the MounRiver compiler,
+with the option of WCH-Link for emulation and download, and provides reference examples and demonstrations of
+applications related to chip resources.
+
+2. Evaluation Board Hardware
+
+Please refer to the CH32x035_SCH.pdf document for the schematic of the evaluation board.
+CH32x035 Evaluation Board
+
+Description                          2. SDI interface                    3. LED
+ 1.MCU                               5. Boot mode configuration/USB pin  6.USB interface
+ 4.Serial port 2                     8. MCU I/O
+ 7.Switch
+
+The above CH32x035 evaluation board comes with the following resources.
+Motherboard - CH32x035EVT
+ 1. MCU: CH32X035F8U6
+ 2. SWD interface: for downloading, simulation debugging
+ 3. LED: connected to the main chip I/O port for control through pins
+
+V1.3                                 1
+CH32x035 Evaluation Board Reference                                         https://wch-ic.com
+
+4. Serial port 2: for printing and serial communication (Note: EVT printing default serial port 1, need to select
+      serial port 2 in Debug.c)
+
+5. Boot mode configuration/USB pin: select the boot mode when the chip is powered on by configuring
+      BOOT0/1
+
+6. USB interface P7, P8: the main chip's USB communication interface PC16, PC17
+7. Switch S2: used to cut off or connect external 5V power supply or USB power supply
+8. MCU I/O port: the I/O interface of the main control MCU
+
+CH32x035 Evaluation Board
+
+Description                          2. Switch            3. Serial port 2
+ 1. Download button                  5. MCU               6. SDI interface
+ 4. LED                              8. USB interface
+ 7. USB pin
+
+The above CH32x035 evaluation board comes with the following resources.
+Motherboard - CH32x035EVT
+ 1. Download button: selects the boot mode when the chip is powered up
+ 2. Switch S2: for disconnecting or connecting external 5V power supply or USB power supply
+ 3. Serial port 2: for serial communication and printing (note: default serial port 1 is used as the print pin in EVT,
+
+      PB10-TX, PB11-RX)
+ 4. LED: connected to the main chip IO port via pins for control
+ 5. MCU: CH32X035G8U6
+ 6. Debug interface: for downloading, emulation and debugging
+
+V1.3                                                   2
+CH32x035 Evaluation Board Reference                                        https://wch-ic.com
+
+7. USB pins: through the configuration of PC17 can choose the boot mode when the chip is powered on
+8. USB interface P7, P8: USB communication interface PC16, PC17 of the main chip
+
+CH32x035 Evaluation Board
+
+Description                          2. LED              3. Serial port 1
+ 1. MCU                              5. Download button  6. USB interface
+ 4. SDI interface                    8. MCU I/O          9. Switch
+ 7. Reset button
+
+The above CH32X035 evaluation board comes with the following resources:
+Motherboard - CH32X035EVT
+1. MCU: CH32X035C8T6
+2. LED: Connected to the main chip IO port via pins for control
+3. Serial port 1: For serial communication and printing
+4. Debug interface: For downloading, emulation and debugging
+5. Download button: Select the boot mode when the chip is powered on
+6. USB interface P7, P8: USB communication interface PC16, PC17 of the main chip
+7. Reset button: For external manual reset of the MCU
+8. MCU I/O: Main MCU I/O pinout
+9. Switch S2: For disconnecting or connecting external 5V power supply or USB power supply
+
+V1.3                                 3
+CH32x035 Evaluation Board Reference                                        https://wch-ic.com
+
+CH32x033 Evaluation Board
+
+Description                          2. Switch           3. Serial port 2
+ 1. Reset button                     5. Download button  6. USB interface
+ 4. SDI interface
+ 7. MCU
+
+ The above CH32X033 evaluation board comes with the following resources:
+ Motherboard - CH32X033EVT
+1. Reset button: For external manual reset of the MCU
+2. Switch S2: For disconnecting or connecting external 5V power supply or USB power supply
+3. Serial port 2: For serial communication and printing (Note: The default serial port 1 is used as the print pin in
+
+     EVT, PB10-TX, PB11-RX)
+4. Debug interface: For downloading, emulation and debugging
+5. Download button: Select the boot mode when the chip is powered on
+6. USB interface P7, P8: USB communication interface PC16, PC17 of the main chip
+7. MCU: CH32X033F8P6
+
+CH32x035 Evaluation Board
+
+V1.3                                 4
+CH32x035 Evaluation Board Reference                              https://wch-ic.com
+
+Description                          2. Download button  3. LED
+ 1. Switch                           5. SDI interface    6. MCU
+ 4. USB interface
+
+The above CH32X035 evaluation board comes with the following resources:
+Motherboard - CH32X035EVT
+1. Switch S2: For disconnecting or connecting external 5V power supply or USB power supply
+2. Download button: Select the boot mode when the chip is powered on
+3. LED: Controlled by pins connected to the IO port of the main chip
+4. USB interface P7, P8: USB communication interface PC16, PC17 of the main chip
+5. Debug interface: For downloading, emulation and debugging
+6. MCU: CH32X035G8R6
+
+V1.3                                 5
+CH32x035 Evaluation Board Reference     https://wch-ic.com
+
+3. Software Development
+
+3.1 EVT Package Directory Structure
+
+Description:
+PUB folder: provides evaluation board manuals, evaluation board schematics.
+EXAM folder: Provides software development drivers and corresponding examples for the CH32x035 controller,
+grouped by peripheral. Each type of peripheral folder contains one or more functional application routines folders.
+
+3.2 IDE Use-MounRiver
+
+Download MounRiver_Studio, double click to install it, and you can use it after installation. (MounRiver_Studio
+instructions are available at the path: MounRiver\MounRiver_Studio\ MounRiver_Help.pdf and
+MounRiver_ToolbarHelp.pdf)
+
+3.2.1 Open Project
+
+ Open project:
+1) Double-click project file directly with the suffix name .wvproj under the corresponding project path.
+2) Click File in MounRiver IDE, click Load Project, select the .project file under the corresponding path, and
+
+      click Confirm to apply it.
+
+3.2.2 Compilation
+
+MounRiver contains three compilation options, as shown in the following figure.
+
+Compile option 1 is Incremental Build, which compiles the modified parts of the selected project.
+Compile option 2 is ReBuild, which performs a global compilation of the selected project.
+Compile option 3 is All Build, which performs global compilation for all projects.
+
+3.2.3 Download/Simulation
+
+ Download
+
+V1.3                                 6
+CH32x035 Evaluation Board Reference     https://wch-ic.com
+
+1) Debugger download
+Connect to the hardware via WCH-Link (see WCH-Link instructions for details, path:
+MounRiver\MounRiver_Studio\ WCH-Link instructions.pdf), click the Download button on the IDE, and select
+Download in the pop-up interface, as shown in the figure below.
+
+1 for querying the chip read protection status.
+2 for setting the chip read protection and re-powering the configuration to take effect.
+3 for lifting the chip read protection and re-powering the configuration to take effect.
+
+ Simulation
+1) Toolbar description
+Click Debug button in the menu bar to enter the download, see the image below, the download toolbar.
+
+Detailed functions are as follows.
+      (1) Reset: After reset, the program returns to the very beginning.
+      (2) Continue: Click to continue debugging.
+      (3) Terminate: Click to exit debugging.
+      (4) Single-step jump-in: Each time you tap a key, the program runs one step and encounters a function to enter
+           and execute.
+      (5) Single-step skip: jump out of the function and prepare the next statement.
+      (6) Single-step return: return the function you jumped into
+      Instruction set single-step mode: click to enter instruction set debugging (need to use with 4, 5 and 6 functions).
+
+V1.3                                 7
+CH32x035 Evaluation Board Reference     https://wch-ic.com
+
+2) Set breakpoints
+Double-click on the left side of the code to set a breakpoint, double click again to cancel the breakpoint, set the
+breakpoint as shown in the following figure;
+
+3) Interface display
+      (1) Instruction set interface
+      Click on the instruction set single-step debugging can enter the instruction debugging, to single-step jump in
+      for example, click once to run once, the running cursor will move to view the program running, the instruction
+      set interface is shown as follows.
+
+      (2) Program running interface
+      It can be used with instruction set single-step debugging, still take single-step jumping in as an example, click
+      once to run once, the running cursor will move to view the program running, the program running interface is
+      shown as follows.
+
+V1.3                                 8
+CH32x035 Evaluation Board Reference     https://wch-ic.com
+
+4) Variables
+Hover over the variable in the source code to display the details, or select the variable and right-click add watch
+expression
+
+Fill in the variable name, or just click OK to add the variable you just selected to the pop-up.
+
+5) Peripheral registers
+In the lower left corner of IDE interface Peripherals interface shows a list of peripherals, tick the peripherals will
+display its specific register name, address, value in the Memory window.
+
+V1.3                                 9
+CH32x035 Evaluation Board Reference      https://wch-ic.com
+
+Note:
+(1) When debugging, click the icon in the upper right corner to enter the original interface.
+
+(2) For documentation to access the compiler, click F1 to access the help documentation for detailed instructions.
+
+V1.3                                 10
+CH32x035 Evaluation Board Reference                                              https://wch-ic.com
+
+4. WCH-LinkUtility.exe Download
+
+The download process for the chip using the WCH-LinkUtility tool is:
+1) Connect WCH-Link
+2) Select chip information
+3) Add firmware
+4) If the chip is read protected, you need to release the chip read protection.
+5) Execute
+
+V1.3  11
+CH32x035 Evaluation Board Reference      https://wch-ic.com
+
+5. WCHISPTool.exe Download
+
+The WCHISPTool tool is used to download the chip, supporting both USB and serial port. The USB pins are PC16
+(DM), PC17 (DP), and the serial port pins are PA2 (TX), PA3 (RX). The download process is:
+(1) Press and hold the Download button to connect the USB or serial port to the PC; the chip powers up and detects
+USB_P (PC17) high level to enter BOOT;
+(2) Release the Download key. Open WCHISPTool tool, select the corresponding download method, choose to
+download firmware, check the chip configuration, and click download;
+The WCHISPTool tool interface is shown in the following figure.
+
+1. Select MCU series and chip model
+2. Select USB or the serial port download mode
+3. Identify the device, usually automatically, if it fails to identify, you need to select manually
+4. Select the firmware, select the downloaded .hex or .bin target program file
+5. Configure the download according to the requirements
+6. Click download
+
+6. Statement of Attention
+
+1) If you use WCH-Link to download, refer to WCH-Link instructions for specific switching mode.
+      Detailed inquiries/questions can be logged in the following.
+
+WCH official website: https://www.wch-ic.com/
+
+WCH-LINK instructions for use: https://www.wch-ic.com/products/WCH-Link.html
+
+V1.3                                 12
+
