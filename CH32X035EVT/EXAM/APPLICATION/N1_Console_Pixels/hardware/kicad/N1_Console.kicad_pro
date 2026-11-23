@@ -1,0 +1,24 @@
+{
+  "board": {},
+  "libraries": {
+    "pinned_footprint_libs": [],
+    "pinned_symbol_libs": []
+  },
+  "meta": {
+    "filename": "N1_Console.kicad_pro",
+    "version": 1
+  },
+  "net_settings": {},
+  "pcbnew": {},
+  "schematic": {
+    "legacy_lib_dir": "",
+    "legacy_lib_list": []
+  },
+  "sheets": [
+    [
+      "8392522a-b70b-49c2-aa9c-2c957728df0b",
+      "N1_Console.kicad_sch"
+    ]
+  ],
+  "text_variables": {}
+}

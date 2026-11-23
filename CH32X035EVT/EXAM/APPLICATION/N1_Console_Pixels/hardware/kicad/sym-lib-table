@@ -1,0 +1,4 @@
+(sym_lib_table
+  (version 7)
+  (lib (name "N1")(type "KiCad")(uri "${KIPRJMOD}/N1_Console.kicad_sym")(options "")(descr "N1 console generated symbols"))
+)
